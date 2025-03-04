@@ -1,13 +1,17 @@
 var CodePushWrapper = require("../codePushWrapper.js");
-import CodePush from "@code-push-next/react-native-code-push";
+import CodePush from "@appsonair/react-native-code-push";
 
 module.exports = {
-    startTest: function (testApp) {
-        CodePushWrapper.sync(testApp, undefined, undefined, { installMode: CodePush.InstallMode.IMMEDIATE });
-        CodePushWrapper.sync(testApp, undefined, undefined, { installMode: CodePush.InstallMode.IMMEDIATE });
-    },
+  startTest: function (testApp) {
+    CodePushWrapper.sync(testApp, undefined, undefined, {
+      installMode: CodePush.InstallMode.IMMEDIATE,
+    });
+    CodePushWrapper.sync(testApp, undefined, undefined, {
+      installMode: CodePush.InstallMode.IMMEDIATE,
+    });
+  },
 
-    getScenarioName: function () {
-        return "Sync 2x";
-    }
+  getScenarioName: function () {
+    return "Sync 2x";
+  },
 };

@@ -1,19 +1,27 @@
 var CodePushWrapper = require("../codePushWrapper.js");
-import CodePush from "@code-push-next/react-native-code-push";
+import CodePush from "@appsonair/react-native-code-push";
 
 module.exports = {
-    startTest: function (testApp) {
-        testApp.readyAfterUpdate((responseBody) => {
-            if (responseBody !== "SKIP_NOTIFY_APPLICATION_READY") {
-                CodePush.notifyAppReady();
-                CodePushWrapper.checkAndInstall(testApp, undefined, undefined, CodePush.InstallMode.ON_NEXT_RESTART);
-            } else {
-                testApp.setStateAndSendMessage("Skipping notifyApplicationReady!", "SKIPPED_NOTIFY_APPLICATION_READY");
-            }
-        });
-    },
+  startTest: function (testApp) {
+    testApp.readyAfterUpdate((responseBody) => {
+      if (responseBody !== "SKIP_NOTIFY_APPLICATION_READY") {
+        CodePush.notifyAppReady();
+        CodePushWrapper.checkAndInstall(
+          testApp,
+          undefined,
+          undefined,
+          CodePush.InstallMode.ON_NEXT_RESTART
+        );
+      } else {
+        testApp.setStateAndSendMessage(
+          "Skipping notifyApplicationReady!",
+          "SKIPPED_NOTIFY_APPLICATION_READY"
+        );
+      }
+    });
+  },
 
-    getScenarioName: function () {
-        return "Conditional Update";
-    }
+  getScenarioName: function () {
+    return "Conditional Update";
+  },
 };

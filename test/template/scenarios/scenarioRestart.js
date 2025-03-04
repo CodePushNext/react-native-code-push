@@ -1,19 +1,23 @@
 var CodePushWrapper = require("../codePushWrapper.js");
-import CodePush from "@code-push-next/react-native-code-push";
+import CodePush from "@appsonair/react-native-code-push";
 
 module.exports = {
-    startTest: function (testApp) {
-        testApp.sendCurrentAndPendingPackage()
-            .then(() => {
-                CodePushWrapper.sync(testApp, (status) => {
-                    if (status === CodePush.SyncStatus.UPDATE_INSTALLED) {
-                        testApp.sendCurrentAndPendingPackage().then(CodePush.restartApp);
-                    }
-                }, undefined, { installMode: CodePush.InstallMode.ON_NEXT_RESTART });
-            });
-    },
+  startTest: function (testApp) {
+    testApp.sendCurrentAndPendingPackage().then(() => {
+      CodePushWrapper.sync(
+        testApp,
+        (status) => {
+          if (status === CodePush.SyncStatus.UPDATE_INSTALLED) {
+            testApp.sendCurrentAndPendingPackage().then(CodePush.restartApp);
+          }
+        },
+        undefined,
+        { installMode: CodePush.InstallMode.ON_NEXT_RESTART }
+      );
+    });
+  },
 
-    getScenarioName: function () {
-        return "Restart";
-    }
+  getScenarioName: function () {
+    return "Restart";
+  },
 };

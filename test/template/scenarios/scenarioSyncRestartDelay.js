@@ -1,16 +1,15 @@
 var CodePushWrapper = require("../codePushWrapper.js");
-import CodePush from "@code-push-next/react-native-code-push";
+import CodePush from "@appsonair/react-native-code-push";
 
 module.exports = {
-    startTest: function (testApp) {
-        CodePushWrapper.sync(testApp, undefined, undefined,
-            {
-                installMode: CodePush.InstallMode.ON_NEXT_RESTART,
-                minimumBackgroundDuration: 15
-            });
-    },
+  startTest: function (testApp) {
+    CodePushWrapper.sync(testApp, undefined, undefined, {
+      installMode: CodePush.InstallMode.ON_NEXT_RESTART,
+      minimumBackgroundDuration: 15,
+    });
+  },
 
-    getScenarioName: function () {
-        return "Sync Restart Delay";
-    }
+  getScenarioName: function () {
+    return "Sync Restart Delay";
+  },
 };

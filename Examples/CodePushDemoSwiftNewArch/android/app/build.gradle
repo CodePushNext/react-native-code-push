@@ -118,4 +118,4 @@ dependencies {
     }
 }
 
-apply from: "../../node_modules/@code-push-next/react-native-code-push/android/codepush.gradle"
+apply from: "../../node_modules/@appsonair/react-native-code-push/android/codepush.gradle"
