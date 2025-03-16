@@ -22,7 +22,7 @@
 }
 
 -keepclassmembers class com.facebook.react.runtime.ReactHostImpl {
-    private final ** ReactHostDelegate;
+    private final ** mReactHostDelegate;
 }
 
 -keep interface com.facebook.react.runtime.ReactHostDelegate { *; }
