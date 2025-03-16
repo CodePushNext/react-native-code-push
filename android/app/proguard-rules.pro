@@ -25,7 +25,7 @@
     private final ** ReactHostDelegate;
 }
 
--keep com.facebook.react.runtime.ReactHostDelegate { *; }
+-keep interface com.facebook.react.runtime.ReactHostDelegate { *; }
 
 -keep class * implements com.facebook.react.runtime.ReactHostDelegate { *; }
 
