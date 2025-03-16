@@ -21,5 +21,11 @@
     private final ** mBundleLoader;
 }
 
+-keepclassmembers class com.facebook.react.runtime.ReactHostImpl {
+    private final ** ReactHostDelegate;
+}
+
+-keep com.facebook.react.runtime.ReactHostDelegate { *; }
+
 # Can't find referenced class org.bouncycastle.**
 -dontwarn com.nimbusds.jose.**
