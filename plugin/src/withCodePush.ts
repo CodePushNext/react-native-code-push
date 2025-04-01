@@ -15,17 +15,56 @@ const pkg = require("../../package.json");
 // Constants
 const CODE_PUSH_DEPLOYMENT_KEY = "CodePushDeploymentKey";
 const CODE_PUSH_PUBLIC_KEY = "CodePushPublicKey";
-
+const CODE_PUSH_SERVER_URL = "CodePushServerUrl";
 // Type definitions
 type CodePushConfig = {
 	ios?: {
 		CodePushDeploymentKey?: string;
 		CodePushPublicKey?: string;
+		CodePushServerUrl?: string;
 	};
 	android?: {
 		CodePushDeploymentKey?: string;
 		CodePushPublicKey?: string;
+		CodePushServerUrl?: string;
 	};
+};
+
+// Interface for string resources
+interface StringResources {
+	string: Array<{
+		$: { name: string };
+		_: string;
+	}>;
+}
+
+// Utility function to add string resource
+const addStringResource = (
+	resources: StringResources,
+	name: string,
+	value: string,
+) => {
+	resources.string = resources.string || [];
+	resources.string.push({
+		$: { name },
+		_: value,
+	});
+};
+
+// Utility function to add content if not exists
+const addContentIfNotExists = (
+	contents: string,
+	searchString: string,
+	importStatement: string,
+	beforeString: string,
+) => {
+	if (!contents.includes(searchString)) {
+		return contents.replace(
+			beforeString,
+			`${beforeString}\n${importStatement}`,
+		);
+	}
+	return contents;
 };
 
 const withCodePush: ConfigPlugin<CodePushConfig> = (
@@ -37,11 +76,15 @@ const withCodePush: ConfigPlugin<CodePushConfig> = (
 	// Configure iOS Info.plist
 	if (ios?.CodePushDeploymentKey || ios?.CodePushPublicKey) {
 		modifiedConfig = withInfoPlist(modifiedConfig, (config) => {
+			const { modResults } = config;
 			if (ios.CodePushDeploymentKey) {
-				config.modResults[CODE_PUSH_DEPLOYMENT_KEY] = ios.CodePushDeploymentKey;
+				modResults[CODE_PUSH_DEPLOYMENT_KEY] = ios.CodePushDeploymentKey;
 			}
 			if (ios.CodePushPublicKey) {
-				config.modResults[CODE_PUSH_PUBLIC_KEY] = ios.CodePushPublicKey;
+				modResults[CODE_PUSH_PUBLIC_KEY] = ios.CodePushPublicKey;
+			}
+			if (ios.CodePushServerUrl) {
+				modResults[CODE_PUSH_SERVER_URL] = ios.CodePushServerUrl;
 			}
 			return config;
 		});
@@ -50,18 +93,13 @@ const withCodePush: ConfigPlugin<CodePushConfig> = (
 	// Configure iOS AppDelegate.mm
 	if (ios) {
 		modifiedConfig = withAppDelegate(modifiedConfig, (config) => {
-			// Add CodePush import
-			if (
-				!config.modResults.contents.includes("#import <CodePush/CodePush.h>")
-			) {
-				config.modResults.contents = config.modResults.contents.replace(
-					`#import "AppDelegate.h"`,
-					`#import "AppDelegate.h"
-#import <CodePush/CodePush.h>`,
-				);
-			}
+			config.modResults.contents = addContentIfNotExists(
+				config.modResults.contents,
+				"#import <CodePush/CodePush.h>",
+				"#import <CodePush/CodePush.h>",
+				'#import "AppDelegate.h"',
+			);
 
-			// Modify bundleURL method
 			if (!config.modResults.contents.includes("CodePush.bundleURL")) {
 				config.modResults.contents = config.modResults.contents.replace(
 					'return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];',
@@ -74,32 +112,33 @@ const withCodePush: ConfigPlugin<CodePushConfig> = (
 	}
 
 	// Android strings.xml
-	if (android?.CodePushDeploymentKey || android?.CodePushPublicKey) {
+	if (
+		android?.CodePushDeploymentKey ||
+		android?.CodePushPublicKey ||
+		android?.CodePushServerUrl
+	) {
 		modifiedConfig = withStringsXml(modifiedConfig, (config) => {
-			// Add CodePush deployment key
 			if (android.CodePushDeploymentKey) {
-				config.modResults.resources.string =
-					config.modResults.resources.string || [];
-				config.modResults.resources.string.push({
-					$: {
-						name: CODE_PUSH_DEPLOYMENT_KEY,
-					},
-					_: android.CodePushDeploymentKey,
-				});
+				addStringResource(
+					config.modResults.resources as StringResources,
+					CODE_PUSH_DEPLOYMENT_KEY,
+					android.CodePushDeploymentKey,
+				);
 			}
-
-			// Add CodePush public key
 			if (android.CodePushPublicKey) {
-				config.modResults.resources.string =
-					config.modResults.resources.string || [];
-				config.modResults.resources.string.push({
-					$: {
-						name: CODE_PUSH_PUBLIC_KEY,
-					},
-					_: android.CodePushPublicKey,
-				});
+				addStringResource(
+					config.modResults.resources as StringResources,
+					CODE_PUSH_PUBLIC_KEY,
+					android.CodePushPublicKey,
+				);
 			}
-
+			if (android.CodePushServerUrl) {
+				addStringResource(
+					config.modResults.resources as StringResources,
+					CODE_PUSH_SERVER_URL,
+					android.CodePushServerUrl,
+				);
+			}
 			return config;
 		});
 	}
@@ -107,20 +146,13 @@ const withCodePush: ConfigPlugin<CodePushConfig> = (
 	// Configure Android MainApplication.java
 	if (android) {
 		modifiedConfig = withMainApplication(modifiedConfig, (config) => {
-			// Add CodePush import
-			if (
-				!config.modResults.contents.includes(
-					"import com.microsoft.codepush.react.CodePush;",
-				)
-			) {
-				config.modResults.contents = config.modResults.contents.replace(
-					"import com.facebook.react.ReactApplication",
-					`import com.facebook.react.ReactApplication
-import com.microsoft.codepush.react.CodePush`,
-				);
-			}
+			config.modResults.contents = addContentIfNotExists(
+				config.modResults.contents,
+				"import com.microsoft.codepush.react.CodePush;",
+				"import com.microsoft.codepush.react.CodePush",
+				"import com.facebook.react.ReactApplication",
+			);
 
-			// Add CodePush.getJSBundleFile() override method
 			if (
 				!config.modResults.contents.includes(
 					"override fun getJSBundleFile(): String",
@@ -130,9 +162,9 @@ import com.microsoft.codepush.react.CodePush`,
 					"override val isHermesEnabled: Boolean = BuildConfig.IS_HERMES_ENABLED",
 					`override val isHermesEnabled: Boolean = BuildConfig.IS_HERMES_ENABLED
 
-          override fun getJSBundleFile(): String {
-             return CodePush.getJSBundleFile() 
-           }`,
+					override fun getJSBundleFile(): String {
+						 return CodePush.getJSBundleFile() 
+					   }`,
 				);
 			}
 			return config;
