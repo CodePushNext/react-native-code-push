@@ -15,18 +15,18 @@ const pkg = require("../../package.json");
 // Constants
 const CODE_PUSH_DEPLOYMENT_KEY = "CodePushDeploymentKey";
 const CODE_PUSH_PUBLIC_KEY = "CodePushPublicKey";
-const CODE_PUSH_SERVER_URL = "CodePushServerUrl";
+const CODE_PUSH_SERVER_URL = "CodePushServerURL";
 // Type definitions
 type CodePushConfig = {
 	ios?: {
 		CodePushDeploymentKey?: string;
 		CodePushPublicKey?: string;
-		CodePushServerUrl?: string;
+		CodePushServerURL?: string;
 	};
 	android?: {
 		CodePushDeploymentKey?: string;
 		CodePushPublicKey?: string;
-		CodePushServerUrl?: string;
+		CodePushServerURL?: string;
 	};
 };
 
@@ -77,7 +77,7 @@ const withCodePush: ConfigPlugin<CodePushConfig> = (
 	if (
 		ios?.CodePushDeploymentKey ||
 		ios?.CodePushPublicKey ||
-		ios?.CodePushServerUrl
+		ios?.CodePushServerURL
 	) {
 		modifiedConfig = withInfoPlist(modifiedConfig, (config) => {
 			const { modResults } = config;
@@ -87,8 +87,8 @@ const withCodePush: ConfigPlugin<CodePushConfig> = (
 			if (ios.CodePushPublicKey) {
 				modResults[CODE_PUSH_PUBLIC_KEY] = ios.CodePushPublicKey;
 			}
-			if (ios.CodePushServerUrl) {
-				modResults[CODE_PUSH_SERVER_URL] = ios.CodePushServerUrl;
+			if (ios.CodePushServerURL) {
+				modResults[CODE_PUSH_SERVER_URL] = ios.CodePushServerURL;
 			}
 			return config;
 		});
@@ -119,7 +119,7 @@ const withCodePush: ConfigPlugin<CodePushConfig> = (
 	if (
 		android?.CodePushDeploymentKey ||
 		android?.CodePushPublicKey ||
-		android?.CodePushServerUrl
+		android?.CodePushServerURL
 	) {
 		modifiedConfig = withStringsXml(modifiedConfig, (config) => {
 			if (android.CodePushDeploymentKey) {
@@ -136,11 +136,11 @@ const withCodePush: ConfigPlugin<CodePushConfig> = (
 					android.CodePushPublicKey,
 				);
 			}
-			if (android.CodePushServerUrl) {
+			if (android.CodePushServerURL) {
 				addStringResource(
 					config.modResults.resources as StringResources,
 					CODE_PUSH_SERVER_URL,
-					android.CodePushServerUrl,
+					android.CodePushServerURL,
 				);
 			}
 			return config;
