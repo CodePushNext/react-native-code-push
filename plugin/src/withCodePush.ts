@@ -74,7 +74,11 @@ const withCodePush: ConfigPlugin<CodePushConfig> = (
 	let modifiedConfig = config;
 
 	// Configure iOS Info.plist
-	if (ios?.CodePushDeploymentKey || ios?.CodePushPublicKey) {
+	if (
+		ios?.CodePushDeploymentKey ||
+		ios?.CodePushPublicKey ||
+		ios?.CodePushServerUrl
+	) {
 		modifiedConfig = withInfoPlist(modifiedConfig, (config) => {
 			const { modResults } = config;
 			if (ios.CodePushDeploymentKey) {
