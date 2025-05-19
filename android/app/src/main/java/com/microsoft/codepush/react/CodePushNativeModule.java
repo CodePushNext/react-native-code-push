@@ -140,7 +140,8 @@ public class CodePushNativeModule extends BaseJavaModule {
 
     // Use reflection to find and set the appropriate fields on ReactHostDelegate. See #556 for a proposal for a less brittle way
     // to approach this.
-    private void setJSBundle(ReactHostDelegate reactHostDelegate, String latestJSBundleFile) throws IllegalAccessException {
+    private void setJSBundle(ReactHostDelegate reactHostDelegate, String latestJSBundleFile) {
+        CodePushUtils.log("[MyDebug] setJSBundle called. ReactHostDelegate class: " + (reactHostDelegate != null ? reactHostDelegate.getClass().getName() : "null"));
         try {
             JSBundleLoader latestJSBundleLoader;
             if (latestJSBundleFile.toLowerCase().startsWith("assets://")) {
@@ -152,11 +153,16 @@ public class CodePushNativeModule extends BaseJavaModule {
             Field bundleLoaderField = reactHostDelegate.getClass().getDeclaredField("jsBundleLoader");
             bundleLoaderField.setAccessible(true);
             bundleLoaderField.set(reactHostDelegate, latestJSBundleLoader);
-        } catch (Exception e) {
-            CodePushUtils.log("Unable to set JSBundle of ReactHostDelegate - CodePush may not support this version of React Native");
-            throw new IllegalAccessException("Could not setJSBundle");
+            CodePushUtils.log("[MyDebug] Successfully set jsBundleLoader via reflection!");
+        } catch (NoSuchFieldException nsfe) {
+            CodePushUtils.log("[MyDebug] Field 'jsBundleLoader' NOT FOUND on " + (reactHostDelegate != null ? reactHostDelegate.getClass().getName() : "null") + ". This is an EXPECTED and IGNORED failure with ExpoReactHostDelegate. Will rely on reactHost.reload(). Original log: Unable to set JSBundle of ReactHostDelegate - CodePush may not support this version of React Native");
+            // DO NOT THROW for NoSuchFieldException.
+        }catch (Exception e) {
+                CodePushUtils.log("[MyDebug] Exception in setJSBundle reflection: " + e.toString()); 
+                CodePushUtils.log("Unable to set JSBundle of ReactHostDelegate - CodePush may not support this version of React Native");
+                //throw new IllegalAccessException("Could not setJSBundle");
+            }
         }
-    }
 
     private void loadBundle() {
         clearLifecycleEventListener();
@@ -177,38 +183,65 @@ public class CodePushNativeModule extends BaseJavaModule {
                 mCodePush.clearDebugCacheIfNeeded(false);
             }
 
+
             try {
                 // #1) Get the ReactHost instance, which is what includes the
                 //     logic to reload the current React context.
                 final ReactHost reactHost = resolveReactHost();
                 if (reactHost == null) {
+                    CodePushUtils.log("[MyDebug] ReactHost is null in loadBundle(). Falling back to legacy.");
+                    loadBundleLegacy(); // Fallback if reactHost can't be resolved
                     return;
                 }
 
                 String latestJSBundleFile = mCodePush.getJSBundleFileInternal(mCodePush.getAssetsBundleFileName());
+                CodePushUtils.log("[MyDebug] Latest JS bundle for New Arch: " + latestJSBundleFile);
 
                 // #2) Update the locally stored JS bundle file path
-                setJSBundle(getReactHostDelegate((ReactHostImpl) reactHost), latestJSBundleFile);
-
-                // #3) Get the context creation method
+                // Attempt the reflection-based setJSBundle, but don't let its failure stop us.
+                // The modified setJSBundle above should no longer throw the fatal exception upwards.
                 try {
-                    reactHost.reload("CodePush triggers reload");
-                    mCodePush.initializeUpdateAfterRestart();
-                } catch (Exception e) {
-                    // The recreation method threw an unknown exception
-                    // so just simply fallback to restarting the Activity (if it exists)
-                    loadBundleLegacy();
+                    if (reactHost instanceof ReactHostImpl) { // Only attempt if it's a direct ReactHostImpl
+                        ReactHostDelegate delegate = getReactHostDelegate((ReactHostImpl) reactHost); // getReactHostDelegate might be specific to ReactHostImpl
+                        if (delegate != null) {
+                            CodePushUtils.log("[MyDebug] Attempting setJSBundle (reflection method)...");
+                            setJSBundle(delegate, latestJSBundleFile); // This will now log if NoSuchField, but not throw to here
+                        } else {
+                            CodePushUtils.log("[MyDebug] Could not get ReactHostDelegate from ReactHostImpl.");
+                        }
+                    } else {
+                        CodePushUtils.log("[MyDebug] ReactHost is not a direct ReactHostImpl instance (" + reactHost.getClass().getName() + "), skipping direct setJSBundle reflection attempt. This is expected with Expo.");
+                    }
+                } catch (ClassCastException cce) {
+                    CodePushUtils.log(new Exception("[MyDebug] ClassCastException trying to get/use ReactHostDelegate. Skipping reflection call to setJSBundle. This is expected for Expo.", cce));
+                }catch (Exception e) {
+                    // Catch any unexpected errors from the attempt to call setJSBundle, e.g., if getReactHostDelegate itself fails
+                    CodePushUtils.log("[MyDebug] Exception during the reflective setJSBundle block: " + e.getMessage());
                 }
 
+                // #3) Get the context creation method
+                //try {
+                    CodePushUtils.log("[MyDebug] Proceeding to call reactHost.reload().");
+                    reactHost.reload("CodePush triggers reload");
+                    mCodePush.initializeUpdateAfterRestart();
+                    CodePushUtils.log("[MyDebug] reactHost.reload() called and initializeUpdateAfterRestart attempted.");
+
+                //} catch (Exception e) {
+                    // The recreation method threw an unknown exception
+                    // so just simply fallback to restarting the Activity (if it exists)
+                    //loadBundleLegacy();
+                //}
+
             } catch (Exception e) {
-                // Our reflection logic failed somewhere
-                // so fall back to restarting the Activity (if it exists)
-                CodePushUtils.log("Failed to load the bundle, falling back to restarting the Activity (if it exists). " + e.getMessage());
+                // reflection logic failed somewhere so fall back to restarting the Activity (if it exists)
+                //CodePushUtils.log("Failed to load the bundle, falling back to restarting the Activity (if it exists). " + e.getMessage());
+                CodePushUtils.log("[MyDebug] Overall failure in New Arch bundle loading path, falling back to legacy. Error: " + e.toString());
+                e.printStackTrace();
                 loadBundleLegacy();
             }
 
         } else {
-
+            CodePushUtils.log("[MyDebug] Entered OLD Architecture path in loadBundle().");
             try {
                 DevSupportManager devSupportManager = null;
                 ReactInstanceManager reactInstanceManager = resolveInstanceManager();
