@@ -1,4 +1,4 @@
-This is a [**React Native Expo**](https://docs.expo.dev/) project, created using the command `npx create-expo-app@latest --template blank`. The App.js file was then modified to add codepush functionality
+This is a [**React Native Expo**](https://docs.expo.dev/) project, created using the command `npx create-expo-app@latest --template blank`. The App.js file was then modified to add codepush functionality. An expo plugin was added for codepush in `codepush-plugin.js` and is configure in app.json
 
 # Testing Codepush functionality
 
