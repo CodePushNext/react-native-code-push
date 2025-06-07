@@ -32,6 +32,8 @@ Make a visible update to the App, by modifying App.js
 
 Run the following command to generate updated bundle
 
+### Android
+
 ```
 npx expo export:embed \               
   --entry-file index.js \
@@ -43,9 +45,22 @@ npx expo export:embed \
   --minify false
 ```
 
+### iOS
+
+```
+npx expo export:embed \               
+  --entry-file index.js \
+  --platform ios \
+  --dev false \
+  --reset-cache \
+  --bundle-output ./build/main.jsbundle \
+  --assets-dest ./build \
+  --minify false
+```
+
 ## Step 6: Upload the update bundle to codepush server
 
-Upload the bundle to your codepush server
+Upload the update bundle to your codepush server following the instructions from the codepush server that you use
 
 ## Step 7: Open the app on your device
 
