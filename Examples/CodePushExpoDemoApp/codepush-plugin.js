@@ -504,7 +504,7 @@ const withAndroidGradle = (config) => {
 
     // --- Modification for react block  ---
     const reactBlockRegex = /react\s*\{([\s\S]*?)\n\s*\}/m;
-    const bundleAssetNameLine = '    bundleAssetName = "main.jsbundle"'; 
+    const bundleAssetNameLine = '    bundleAssetName = "index.android.bundle"'; 
     const commentedBundleAssetNameRegex = /\/\/\s*bundleAssetName\s*=\s*["'].*?["']/m;
     const uncommentedBundleAssetNameRegex = /^\s*bundleAssetName\s*=\s*["'].*?["']/m; 
 
