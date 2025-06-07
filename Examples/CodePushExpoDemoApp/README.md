@@ -18,7 +18,11 @@ run `cd android && ./gradlew assembleRelease`
 
 The apk bundle will be here `<project folder>/android/app/build/outputs/apk/release/app-release.apk`
 
-Install the bundle on your android device
+Install the bundle on your android device, and open the app
+
+### iOS
+
+Create a release build by opening the `ios/CodePushExpoDemoApp.xcworkspace` in Xcode. Make sure it is a release build (in Xcode go to Product > Scheme > Edit Scheme > Select Run from left bar menu > verify that Release is selected in Build Configuration.). Choose a Simulator as well in Xcode, and Run. Wait till the app loads in simulator.
 
 ## Step 4: Make a change to App.js
 
@@ -45,6 +49,6 @@ Upload the bundle to your codepush server
 
 ## Step 7: Open the app on your device
 
-When the app is opened, it will show that there is an update you can install
+Close/kill the app, and reopen the app. When the app is opened, it will show that there is an update you can install
 
 
