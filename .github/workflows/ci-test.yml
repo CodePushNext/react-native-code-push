@@ -3,6 +3,7 @@ name: CI Tests
 on:
   pull_request:
     types: [opened, edited]
+  workflow_dispatch
 
 jobs:
   android-new-arch-test:
