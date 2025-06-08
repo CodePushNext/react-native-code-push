@@ -13,8 +13,8 @@ jobs:
 
       - name: Run Android Tests
         run: |
-        npm install
-        npm run test:android
+          npm install
+          npm run test:android
 
 
   ios-new-arch-test:
@@ -24,8 +24,8 @@ jobs:
 
       - name: Run iOS Tests
         run: |
-        npm install
-        npm run test:ios
+          npm install
+          npm run test:ios
 
   android-old-arch-test:
     runs-on: self-hosted
@@ -34,8 +34,8 @@ jobs:
 
       - name: Run Android Tests
         run: |
-        npm install
-        npm run test:oldArch:android
+          npm install
+          npm run test:oldArch:android
 
   ios-old-arch-test:
     runs-on: self-hosted
@@ -44,5 +44,5 @@ jobs:
 
       - name: Run iOS Tests
         run: |
-        npm install
-        npm run test:oldArch:ios
+          npm install
+          npm run test:oldArch:ios
