@@ -44,7 +44,6 @@ android/.gradle
 android/**/*.iml
 android/.idea
 
-
 # Windows
 windows/.vs/
 windows/obj/
@@ -92,7 +91,6 @@ packages/
 # IntelliJIDEA
 .idea/
 
-
 # Github
 .github/
 
@@ -101,3 +99,4 @@ packages/
 
 .watchmanconfig
 
+!plugin/build/withCodePush.js

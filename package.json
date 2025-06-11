@@ -17,6 +17,7 @@
     "setup": "npm install --quiet --no-progress",
     "prebuild:tests": "npm run clean && npm run tslint",
     "build:tests": "tsc",
+    "build:plugin": "tsc --project plugin/tsconfig.json",
     "test": "npm run build:tests && npm run test:setup && npm run test:fast",
     "test:android": "npm run build:tests && npm run test:setup:android && npm run test:fast:android",
     "test:ios": "npm run build:tests && npm run test:setup:ios && npm run test:fast:ios",
@@ -64,7 +65,16 @@
     "shx": "^0.3.4",
     "slash": "^3.0.0",
     "tslint": "^6.1.3",
-    "typescript": "^4.4.3"
+    "typescript": "^4.4.3",
+    "expo": "^52.0.0"
+  },
+  "peerDependencies": {
+    "expo": ">=52.0.0"
+  },
+  "peerDependenciesMeta": {
+    "expo": {
+      "optional": true
+    }
   },
   "rnpm": {
     "android": {

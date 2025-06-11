@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "outDir": "build",
+    "rootDir": "src"
+  },
+  "include": ["./src/"]
+}
