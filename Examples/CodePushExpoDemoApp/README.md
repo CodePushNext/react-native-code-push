@@ -1,4 +1,4 @@
-This is a [**React Native Expo**](https://docs.expo.dev/) project, created using the command `npx create-expo-app@latest --template blank`. The App.js file was then modified to add codepush functionality. An expo plugin was added for codepush in `codepush-plugin.js` and is configure in app.json
+This is a [**React Native Expo**](https://docs.expo.dev/) project, created using the command `npx create-expo-app@latest --template blank`. The App.js file was then modified to add codepush functionality. An expo plugin was added for codepush in `codepush-plugin.js` and is configured in app.json
 
 # Testing Codepush functionality
 
@@ -45,6 +45,8 @@ npx expo export:embed \
   --minify false
 ```
 
+zip the build folder (include the build folder): `zip -r update.zip ./build`
+
 ### iOS
 
 ```
@@ -58,9 +60,11 @@ npx expo export:embed \
   --minify false
 ```
 
+zip the build folder (include the build folder): `zip -r update.zip ./build`
+
 ## Step 6: Upload the update bundle to codepush server
 
-Upload the update bundle to your codepush server following the instructions from the codepush server that you use
+Upload the update bundle zip to your codepush server following the instructions from the codepush server that you use
 
 ## Step 7: Open the app on your device
 
