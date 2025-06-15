@@ -93,7 +93,7 @@ class RNAndroid extends Platform.Android implements RNPlatform {
             const gradleProperties = path.join(innerprojectDirectory, "android", "gradle.properties");
             TestUtil.replaceString(gradleProperties, "newArchEnabled=true", "newArchEnabled=false");
         }
-        
+
         //// Set the app version to 1.0.0 instead of 1.0
         // Set the app version to 1.0.0 in android/app/build.gradle
         TestUtil.replaceString(buildGradle, "versionName \"1.0\"", "versionName \"1.0.0\"");
@@ -178,7 +178,7 @@ class RNIOS extends Platform.IOS implements RNPlatform {
         const infoPlistPath: string = path.join(iOSProject, TestConfig.TestAppName, "Info.plist");
         const appDelegatePath: string = path.join(iOSProject, TestConfig.TestAppName, "AppDelegate.swift");
         const podfilePath: string = path.join(iOSProject, "Podfile");
-        
+
 
         // Install the Podfile
         return TestUtil.copyFile(path.join(TestConfig.templatePath, "ios", "Podfile"), podfilePath, true)
@@ -269,6 +269,11 @@ class RNProjectManager extends ProjectManager {
 
     /**
      * Copies over the template files into the specified project, overwriting existing files.
+     * 
+     * In Bare React Native App, Codepush configuration is done through native template files. 
+     * 
+     * In Expo App, the copied native template files will be removed with `npx expo prebuild --clean` command later. 
+     * Codepush configuration in native side will be done through expo plugin. 
      */
     public copyTemplate(templatePath: string, projectDirectory: string): Q.Promise<void> {
         function copyDirectoryRecursively(directoryFrom: string, directoryTo: string): Q.Promise<void> {
@@ -309,15 +314,26 @@ class RNProjectManager extends ProjectManager {
         }
         mkdirp.sync(projectDirectory);
 
-        return TestUtil.getProcessOutput("npx @react-native-community/cli init " + appName + " --version 0.78.0 --install-pods", { cwd: projectDirectory, timeout: 30 * 60 * 1000 })
-            .then((e) => { console.log(`"npx @react-native-community/cli init ${appName}" success. cwd=${projectDirectory}`); return e; })
-            .then(this.copyTemplate.bind(this, templatePath, projectDirectory))
-            .then<void>(TestUtil.getProcessOutput.bind(undefined, TestConfig.thisPluginInstallString, { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
-            .then(() => { return null; })
-            .catch((error) => {
-                console.log(`"npx @react-native-community/cli init ${appName} failed". cwd=${projectDirectory}`, error);
-                throw new Error(error);
-            });
+        if (TestConfig.isExpoApp) {
+            return TestUtil.getProcessOutput(`npx create-expo-app@latest ${appName} --template blank`, { cwd: projectDirectory, timeout: 30 * 60 * 1000 })
+                .then((e) => { console.log(`"npx expo init ${appName}" success. cwd=${projectDirectory}`); return e; })
+                .then(this.copyTemplate.bind(this, templatePath, projectDirectory))
+                .then<void>(TestUtil.getProcessOutput.bind(undefined, TestConfig.thisPluginInstallString, { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
+                // TODO: install the plugin through npm, not like this.
+                .then(TestUtil.copyFile.bind(undefined, `${templatePath}/../../expo/codepush-plugin.js`, `${projectDirectory}/${TestConfig.TestAppName}/codepush-plugin.js`, false))
+                .then(TestUtil.getProcessOutput.bind(undefined, `npx expo prebuild --clean`, { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
+                .then(() => { return null; });
+        } else {
+            return TestUtil.getProcessOutput("npx @react-native-community/cli init " + appName + " --version 0.78.0 --install-pods", { cwd: projectDirectory, timeout: 30 * 60 * 1000 })
+                .then((e) => { console.log(`"npx @react-native-community/cli init ${appName}" success. cwd=${projectDirectory}`); return e; })
+                .then(this.copyTemplate.bind(this, templatePath, projectDirectory))
+                .then<void>(TestUtil.getProcessOutput.bind(undefined, TestConfig.thisPluginInstallString, { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
+                .then(() => { return null; })
+                .catch((error) => {
+                    console.log(`"npx @react-native-community/cli init ${appName} failed". cwd=${projectDirectory}`, error);
+                    throw new Error(error);
+                });
+        }
     }
 
     /** JSON mapping project directories to the current scenario
