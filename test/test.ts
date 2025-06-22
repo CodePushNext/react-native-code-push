@@ -79,12 +79,8 @@ class RNAndroid extends Platform.Android implements RNPlatform {
     installPlatform(projectDirectory: string): Q.Promise<void> {
 
         if (TestConfig.isExpoApp) {
-            return Q.Promise<void>((resolve, reject) => {
-                const expoAppJson: string = path.join(projectDirectory, TestConfig.TestAppName, "app.json");
-                TestUtil.replaceString(expoAppJson, "ANDROID_MOCK_CODE_PUSH_DEPLOYMENT_KEY", this.getDefaultDeploymentKey());
-                TestUtil.replaceString(expoAppJson, "MOCK_CODE_PUSH_SERVER_URL", this.getServerUrl());
-                resolve(null);
-            });
+            // we use hard-coded deployment key and server url in app.json
+            return Q<void>(null);
         }
 
         const innerprojectDirectory: string = path.join(projectDirectory, TestConfig.TestAppName);
@@ -188,14 +184,12 @@ class RNIOS extends Platform.IOS implements RNPlatform {
         const infoPlistPath: string = path.join(iOSProject, TestConfig.TestAppName, "Info.plist");
         const appDelegatePath: string = path.join(iOSProject, TestConfig.TestAppName, "AppDelegate.swift");
         const podfilePath: string = path.join(iOSProject, "Podfile");
-        const expoAppJson: string = path.join(projectDirectory, TestConfig.TestAppName, "app.json");
 
         if (TestConfig.isExpoApp) {
-            return Q.Promise<void>((resolve, reject) => {
-                TestUtil.replaceString(expoAppJson, "IOS_MOCK_CODE_PUSH_DEPLOYMENT_KEY", this.getDefaultDeploymentKey());
-                TestUtil.replaceString(expoAppJson, "MOCK_CODE_PUSH_SERVER_URL", this.getServerUrl());
-                resolve(null);
-            });
+            if (TestConfig.isExpoApp) {
+                // we use hard-coded deployment key and server url in app.json
+                return Q<void>(null);
+            }
         } else {
             // Install the Podfile
             return TestUtil.copyFile(path.join(TestConfig.templatePath, "ios", "Podfile"), podfilePath, true)

@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.TestCodePush"
+      "bundleIdentifier": "com.testcodepush"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +22,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.TestCodePush"
+      "package": "com.testcodepush"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -32,12 +32,12 @@
         "@code-push-next/react-native-code-push/expo",
         {
           "ios": {
-            "CodePushDeploymentKey": "IOS_MOCK_CODE_PUSH_DEPLOYMENT_KEY",
-            "CodePushServerURL": "MOCK_CODE_PUSH_SERVER_URL"
+            "CodePushDeploymentKey": "mock-ios-deployment-key",
+            "CodePushServerURL": "http://127.0.0.1:3000"
           },
           "android": {
-            "CodePushDeploymentKey": "ANDROID_MOCK_CODE_PUSH_DEPLOYMENT_KEY",
-            "CodePushServerURL": "MOCK_CODE_PUSH_SERVER_URL"
+            "CodePushDeploymentKey": "mock-android-deployment-key",
+            "CodePushServerURL": "http://10.0.2.2:3001"
           }
         }
       ]
