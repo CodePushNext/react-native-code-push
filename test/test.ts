@@ -415,7 +415,7 @@ class RNProjectManager extends ProjectManager {
 
         if (TestConfig.isExpoApp) {
             return deferred.promise
-                .then(TestUtil.getProcessOutput.bind(undefined, "npx expo export --platform " + targetPlatform.getName() + " --output-dir " + bundleFolder,
+                .then(TestUtil.getProcessOutput.bind(undefined, "npx expo export --platform " + targetPlatform.getName() + " --output-dir CodePush",
                     { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
                 .then<string>(TestUtil.archiveFolder.bind(undefined, bundleFolder, "", path.join(projectDirectory, TestConfig.TestAppName, "update.zip"), isDiff));
         } else {
