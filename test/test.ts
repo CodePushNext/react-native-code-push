@@ -77,13 +77,18 @@ class RNAndroid extends Platform.Android implements RNPlatform {
      * Installs the platform on the given project.
      */
     installPlatform(projectDirectory: string): Q.Promise<void> {
+        const innerprojectDirectory: string = path.join(projectDirectory, TestConfig.TestAppName);
 
         if (TestConfig.isExpoApp) {
+            const androidMainActivityPath = path.join(innerprojectDirectory, "android", "app", "src", "main", "java", "com", "testcodepush", "MainActivity.kt");
+
             // we use hard-coded deployment key and server url in app.json
-            return Q<void>(null);
+            return Q.Promise<void>((resolve, reject) => {
+                TestUtil.replaceString(androidMainActivityPath, "\"main\"", `"${TestConfig.TestAppName}"`);
+                resolve(null);
+            });
         }
 
-        const innerprojectDirectory: string = path.join(projectDirectory, TestConfig.TestAppName);
         const gradleContent: string = slash(path.join(innerprojectDirectory, "node_modules", "@code-push-next/react-native-code-push", "android", "codepush.gradle"));
 
         //// Set up gradle to build CodePush with the app
@@ -186,10 +191,11 @@ class RNIOS extends Platform.IOS implements RNPlatform {
         const podfilePath: string = path.join(iOSProject, "Podfile");
 
         if (TestConfig.isExpoApp) {
-            if (TestConfig.isExpoApp) {
-                // we use hard-coded deployment key and server url in app.json
-                return Q<void>(null);
-            }
+            // we use hard-coded deployment key and server url in app.json
+            return Q.Promise<void>((resolve, reject) => {
+                TestUtil.replaceString(appDelegatePath, "\"main\"", `"${TestConfig.TestAppName}"`);
+                resolve(null);
+            });
         } else {
             // Install the Podfile
             return TestUtil.copyFile(path.join(TestConfig.templatePath, "ios", "Podfile"), podfilePath, true)
