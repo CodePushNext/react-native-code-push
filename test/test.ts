@@ -77,6 +77,16 @@ class RNAndroid extends Platform.Android implements RNPlatform {
      * Installs the platform on the given project.
      */
     installPlatform(projectDirectory: string): Q.Promise<void> {
+
+        if (TestConfig.isExpoApp) {
+            return Q.Promise<void>((resolve, reject) => {
+                const expoAppJson: string = path.join(projectDirectory, TestConfig.TestAppName, "app.json");
+                TestUtil.replaceString(expoAppJson, "ANDROID_MOCK_CODE_PUSH_DEPLOYMENT_KEY", this.getDefaultDeploymentKey());
+                TestUtil.replaceString(expoAppJson, "MOCK_CODE_PUSH_SERVER_URL", this.getServerUrl());
+                resolve(null);
+            });
+        }
+
         const innerprojectDirectory: string = path.join(projectDirectory, TestConfig.TestAppName);
         const gradleContent: string = slash(path.join(innerprojectDirectory, "node_modules", "@code-push-next/react-native-code-push", "android", "codepush.gradle"));
 
@@ -125,8 +135,8 @@ class RNAndroid extends Platform.Android implements RNPlatform {
     buildFunction(androidDirectory: string): Q.Promise<void> {
         const gradlewCommand = process.platform === "darwin" || process.platform === "linux" ? "./gradlew" : "gradlew";
         return TestUtil.getProcessOutput(`${gradlewCommand} clean`, { noLogStdOut: true, cwd: androidDirectory })
-                .then(() => TestUtil.getProcessOutput(`${gradlewCommand} assembleRelease --daemon`, { noLogStdOut: true, cwd: androidDirectory }))
-                .then(() => { return null; });
+            .then(() => TestUtil.getProcessOutput(`${gradlewCommand} assembleRelease --daemon`, { noLogStdOut: true, cwd: androidDirectory }))
+            .then(() => { return null; });
     }
 
     /**
@@ -178,30 +188,39 @@ class RNIOS extends Platform.IOS implements RNPlatform {
         const infoPlistPath: string = path.join(iOSProject, TestConfig.TestAppName, "Info.plist");
         const appDelegatePath: string = path.join(iOSProject, TestConfig.TestAppName, "AppDelegate.swift");
         const podfilePath: string = path.join(iOSProject, "Podfile");
+        const expoAppJson: string = path.join(projectDirectory, TestConfig.TestAppName, "app.json");
 
+        if (TestConfig.isExpoApp) {
+            return Q.Promise<void>((resolve, reject) => {
+                TestUtil.replaceString(expoAppJson, "IOS_MOCK_CODE_PUSH_DEPLOYMENT_KEY", this.getDefaultDeploymentKey());
+                TestUtil.replaceString(expoAppJson, "MOCK_CODE_PUSH_SERVER_URL", this.getServerUrl());
+                resolve(null);
+            });
+        } else {
+            // Install the Podfile
+            return TestUtil.copyFile(path.join(TestConfig.templatePath, "ios", "Podfile"), podfilePath, true)
+                .then(() => TestUtil.getProcessOutput(`RCT_NEW_ARCH_ENABLED=${TestConfig.testOldArch ? 0 : 1} pod install`, { cwd: iOSProject }))
+                // Put the IOS deployment key in the Info.plist
+                .then(TestUtil.replaceString.bind(undefined, infoPlistPath,
+                    "</dict>\n</plist>",
+                    "<key>CodePushDeploymentKey</key>\n\t<string>" + this.getDefaultDeploymentKey() + "</string>\n\t<key>CodePushServerURL</key>\n\t<string>" + this.getServerUrl() + "</string>\n\t</dict>\n</plist>"))
+                // Set the app version to 1.0.0 instead of 1.0 in the Info.plist
+                .then(TestUtil.replaceString.bind(undefined, infoPlistPath, "1.0", "1.0.0"))
+                // Remove dependence of CFBundleShortVersionString from project.pbxproj
+                .then(TestUtil.replaceString.bind(undefined, infoPlistPath, "\\$\\(MARKETING_VERSION\\)", "1.0.0"))
+                // Fix the linker flag list in project.pbxproj (pod install adds an extra comma)
+                .then(TestUtil.replaceString.bind(undefined, path.join(iOSProject, TestConfig.TestAppName + ".xcodeproj", "project.pbxproj"),
+                    "\"[$][(]inherited[)]\",\\s*[)];", "\"$(inherited)\"\n\t\t\t\t);"))
+                // Add the correct bundle identifier
+                .then(TestUtil.replaceString.bind(undefined, path.join(iOSProject, TestConfig.TestAppName + ".xcodeproj", "project.pbxproj"),
+                    "PRODUCT_BUNDLE_IDENTIFIER = [^;]*", "PRODUCT_BUNDLE_IDENTIFIER = \"" + TestConfig.TestNamespace + "\""))
+                // Copy the AppDelegate.mm to the project
+                .then(TestUtil.copyFile.bind(undefined,
+                    path.join(TestConfig.templatePath, "ios", TestConfig.TestAppName, "AppDelegate.swift"),
+                    appDelegatePath, true))
+                .then(TestUtil.replaceString.bind(undefined, appDelegatePath, TestUtil.CODE_PUSH_TEST_APP_NAME_PLACEHOLDER, TestConfig.TestAppName));
+        }
 
-        // Install the Podfile
-        return TestUtil.copyFile(path.join(TestConfig.templatePath, "ios", "Podfile"), podfilePath, true)
-            .then(() => TestUtil.getProcessOutput(`RCT_NEW_ARCH_ENABLED=${TestConfig.testOldArch ? 0 : 1} pod install`, { cwd: iOSProject }))
-            // Put the IOS deployment key in the Info.plist
-            .then(TestUtil.replaceString.bind(undefined, infoPlistPath,
-                "</dict>\n</plist>",
-                "<key>CodePushDeploymentKey</key>\n\t<string>" + this.getDefaultDeploymentKey() + "</string>\n\t<key>CodePushServerURL</key>\n\t<string>" + this.getServerUrl() + "</string>\n\t</dict>\n</plist>"))
-            // Set the app version to 1.0.0 instead of 1.0 in the Info.plist
-            .then(TestUtil.replaceString.bind(undefined, infoPlistPath, "1.0", "1.0.0"))
-            // Remove dependence of CFBundleShortVersionString from project.pbxproj
-            .then(TestUtil.replaceString.bind(undefined, infoPlistPath, "\\$\\(MARKETING_VERSION\\)", "1.0.0"))
-            // Fix the linker flag list in project.pbxproj (pod install adds an extra comma)
-            .then(TestUtil.replaceString.bind(undefined, path.join(iOSProject, TestConfig.TestAppName + ".xcodeproj", "project.pbxproj"),
-                "\"[$][(]inherited[)]\",\\s*[)];", "\"$(inherited)\"\n\t\t\t\t);"))
-            // Add the correct bundle identifier
-            .then(TestUtil.replaceString.bind(undefined, path.join(iOSProject, TestConfig.TestAppName + ".xcodeproj", "project.pbxproj"),
-                "PRODUCT_BUNDLE_IDENTIFIER = [^;]*", "PRODUCT_BUNDLE_IDENTIFIER = \"" + TestConfig.TestNamespace + "\""))
-            // Copy the AppDelegate.mm to the project
-            .then(TestUtil.copyFile.bind(undefined,
-                path.join(TestConfig.templatePath, "ios", TestConfig.TestAppName, "AppDelegate.swift"),
-                appDelegatePath, true))
-            .then(TestUtil.replaceString.bind(undefined, appDelegatePath, TestUtil.CODE_PUSH_TEST_APP_NAME_PLACEHOLDER, TestConfig.TestAppName));
     }
 
     /**
@@ -319,8 +338,6 @@ class RNProjectManager extends ProjectManager {
                 .then((e) => { console.log(`"npx expo init ${appName}" success. cwd=${projectDirectory}`); return e; })
                 .then(this.copyTemplate.bind(this, templatePath, projectDirectory))
                 .then<void>(TestUtil.getProcessOutput.bind(undefined, TestConfig.thisPluginInstallString, { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
-                // TODO: install the plugin through npm, not like this.
-                .then(TestUtil.copyFile.bind(undefined, `${templatePath}/../../expo/codepush-plugin.js`, `${projectDirectory}/${TestConfig.TestAppName}/codepush-plugin.js`, false))
                 .then(TestUtil.getProcessOutput.bind(undefined, `npx expo prebuild --clean`, { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
                 .then(() => { return null; });
         } else {

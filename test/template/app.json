@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "CodePushExpoDemoApp",
-    "slug": "CodePushExpoDemoApp",
+    "name": "TestCodePush",
+    "slug": "TestCodePush",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.CodePushNext.ExpoDemoApp"
+      "bundleIdentifier": "com.anonymous.TestCodePush"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +22,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.CodePushNext.ExpoDemoApp"
+      "package": "com.anonymous.TestCodePush"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -32,20 +32,12 @@
         "@code-push-next/react-native-code-push/expo",
         {
           "ios": {
-            "CodePushDeploymentKey": "Tf2qo0NCNKloj8Ym2Z2Bk_VQ_zLDNzk2MGNjNDktNWFiZS00NTAwLWFlNDEtZjMzNzllNGU0MjE0",
-            "CodePushServerURL": "https://codepush.bitrise.io"
+            "CodePushDeploymentKey": "IOS_MOCK_CODE_PUSH_DEPLOYMENT_KEY",
+            "CodePushServerURL": "MOCK_CODE_PUSH_SERVER_URL"
           },
           "android": {
-            "CodePushDeploymentKey": "rUV0_iNflPqa3aJhVpciLnwgAFOaMzFiZjhhNDMtMGEyNS00NTk5LTk2ODEtOWU1NTcwODUwZTgx",
-            "CodePushServerURL": "https://codepush.bitrise.io"
-          }
-        }
-      ],
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "deploymentTarget": "15.5"
+            "CodePushDeploymentKey": "ANDROID_MOCK_CODE_PUSH_DEPLOYMENT_KEY",
+            "CodePushServerURL": "MOCK_CODE_PUSH_SERVER_URL"
           }
         }
       ]
