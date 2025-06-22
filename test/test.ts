@@ -78,6 +78,7 @@ class RNAndroid extends Platform.Android implements RNPlatform {
      */
     installPlatform(projectDirectory: string): Q.Promise<void> {
         const innerprojectDirectory: string = path.join(projectDirectory, TestConfig.TestAppName);
+        const AndroidManifest = path.join(innerprojectDirectory, "android", "app", "src", "main", "AndroidManifest.xml");
 
         if (TestConfig.isExpoApp) {
             const androidMainActivityPath = path.join(innerprojectDirectory, "android", "app", "src", "main", "java", "com", "testcodepush", "MainActivity.kt");
@@ -85,6 +86,7 @@ class RNAndroid extends Platform.Android implements RNPlatform {
             // we use hard-coded deployment key and server url in app.json
             return Q.Promise<void>((resolve, reject) => {
                 TestUtil.replaceString(androidMainActivityPath, "\"main\"", `"${TestConfig.TestAppName}"`);
+                TestUtil.replaceString(AndroidManifest, "android:allowBackup=\"true\"", "android:allowBackup=\"true\"" + "\n\t" + "android:usesCleartextTraffic=\"true\"");
                 resolve(null);
             });
         }
@@ -113,7 +115,6 @@ class RNAndroid extends Platform.Android implements RNPlatform {
 
         //// Replace the MainApplication.java with the correct server url and deployment key
         const string = path.join(innerprojectDirectory, "android", "app", "src", "main", "res", "values", "strings.xml");
-        const AndroidManifest = path.join(innerprojectDirectory, "android", "app", "src", "main", "AndroidManifest.xml");
         TestUtil.replaceString(string, TestUtil.SERVER_URL_PLACEHOLDER, this.getServerUrl());
         TestUtil.replaceString(string, TestUtil.ANDROID_KEY_PLACEHOLDER, this.getDefaultDeploymentKey());
         TestUtil.replaceString(AndroidManifest, "android:allowBackup=\"false\"", "android:allowBackup=\"false\"" + "\n\t" + "android:usesCleartextTraffic=\"true\"");
