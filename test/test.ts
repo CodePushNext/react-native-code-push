@@ -412,10 +412,18 @@ class RNProjectManager extends ProjectManager {
             mkdirp.sync(bundleFolder);
             deferred.resolve(undefined);
         });
-        return deferred.promise
-            .then(TestUtil.getProcessOutput.bind(undefined, "npx react-native bundle --entry-file index.js --platform " + targetPlatform.getName() + " --bundle-output " + bundlePath + " --assets-dest " + bundleFolder + " --dev false",
-                { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
-            .then<string>(TestUtil.archiveFolder.bind(undefined, bundleFolder, "", path.join(projectDirectory, TestConfig.TestAppName, "update.zip"), isDiff));
+
+        if (TestConfig.isExpoApp) {
+            return deferred.promise
+                .then(TestUtil.getProcessOutput.bind(undefined, "npx expo export --platform " + targetPlatform.getName() + " --output-dir " + bundleFolder,
+                    { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
+                .then<string>(TestUtil.archiveFolder.bind(undefined, bundleFolder, "", path.join(projectDirectory, TestConfig.TestAppName, "update.zip"), isDiff));
+        } else {
+            return deferred.promise
+                .then(TestUtil.getProcessOutput.bind(undefined, "npx react-native bundle --entry-file index.js --platform " + targetPlatform.getName() + " --bundle-output " + bundlePath + " --assets-dest " + bundleFolder + " --dev false",
+                    { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
+                .then<string>(TestUtil.archiveFolder.bind(undefined, bundleFolder, "", path.join(projectDirectory, TestConfig.TestAppName, "update.zip"), isDiff));
+        }
     }
 
     /** JSON file containing the platforms the plugin is currently installed for.
