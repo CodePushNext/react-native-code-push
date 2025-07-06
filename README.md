@@ -50,7 +50,8 @@ We try our best to maintain backwards compatibility of our plugin with previous 
 | React Native version(s) | Supporting CodePush version(s)                                                                       |
 |-------------------------|------------------------------------------------------------------------------------------------------|
 | <v0.76                  | **Consider [microsoft/code-push-react-native](https://github.com/microsoft/react-native-code-push)** |
-| v0.76, v0.77, 0.78      | v10.0+ *(Available for Old/New Architecture)*                                                        |
+| v0.76, v0.77, 0.78, 0.79| v10.0+ *(Available for Old/New Architecture)*                                                        |
+| v0.80                   | v10.1+ *(Available for Old/New Architecture)*                                                        |
 
 
 

@@ -1,0 +1,48 @@
+name: CI Tests
+
+on:
+  pull_request:
+    types: [opened, edited]
+  workflow_dispatch:
+
+jobs:
+  android-new-arch-test:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run Android Tests
+        run: |
+          npm install
+          npm run test:android
+
+
+  ios-new-arch-test:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run iOS Tests
+        run: |
+          npm install
+          npm run test:ios
+
+  android-old-arch-test:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run Android Tests
+        run: |
+          npm install
+          npm run test:oldArch:android
+
+  ios-old-arch-test:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run iOS Tests
+        run: |
+          npm install
+          npm run test:oldArch:ios
