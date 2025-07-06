@@ -414,8 +414,14 @@ class RNProjectManager extends ProjectManager {
         });
 
         if (TestConfig.isExpoApp) {
+            // Using react-native bundle instead of expo export because code-push-cli uses react-native-cli to build the app.
             return deferred.promise
-                .then(TestUtil.getProcessOutput.bind(undefined, "npx expo export --platform " + targetPlatform.getName() + " --output-dir CodePush",
+                .then(TestUtil.getProcessOutput.bind(undefined, "npx expo prebuild --clean", { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
+                .then(TestUtil.getProcessOutput.bind(undefined, "npx expo customize metro.config.js",
+                    { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
+                .then(TestUtil.getProcessOutput.bind(undefined, "npm install @react-native-community/cli",
+                    { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
+                .then(TestUtil.getProcessOutput.bind(undefined, "npx react-native bundle --entry-file index.js --platform " + targetPlatform.getName() + " --bundle-output " + bundlePath + " --assets-dest " + bundleFolder + " --dev false",
                     { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
                 .then<string>(TestUtil.archiveFolder.bind(undefined, bundleFolder, "", path.join(projectDirectory, TestConfig.TestAppName, "update.zip"), isDiff));
         } else {
