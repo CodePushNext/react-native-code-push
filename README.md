@@ -1,5 +1,3 @@
-#### [Sign up With App Center](https://appcenter.ms/signup?utm_source=CodePush&utm_medium=Azure) to use CodePush
-
 # React Native Module for CodePush
 
 This plugin provides client-side integration for the [CodePush service](https://microsoft.github.io/code-push/), allowing you to easily add a dynamic update experience to your React Native app(s).
@@ -52,7 +50,8 @@ We try our best to maintain backwards compatibility of our plugin with previous 
 | React Native version(s) | Supporting CodePush version(s)                                                                       |
 |-------------------------|------------------------------------------------------------------------------------------------------|
 | <v0.76                  | **Consider [microsoft/code-push-react-native](https://github.com/microsoft/react-native-code-push)** |
-| v0.76, v0.77, 0.78      | v10.0+ *(Available for Old/New Architecture)*                                                        |
+| v0.76, v0.77, 0.78, 0.79| v10.0+ *(Available for Old/New Architecture)*                                                        |
+| v0.80                   | v10.1+ *(Available for Old/New Architecture)*                                                        |
 
 
 
