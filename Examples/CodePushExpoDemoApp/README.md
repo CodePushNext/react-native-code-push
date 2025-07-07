@@ -34,7 +34,7 @@ Run the following command to generate updated bundle
 
 ### Android
 
-From in the android folder, run:
+From in the project folder, run:
 
 ```
 npx expo export:embed \
@@ -51,7 +51,7 @@ zip the build folder (include the build folder): `zip -r update.zip ./build`
 
 ### iOS
 
-From in the ios folder, run:
+From the project folder, run:
 
 ```
 npx expo export:embed \

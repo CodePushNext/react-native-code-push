@@ -217,64 +217,65 @@ const withAndroidGradle = (config) => {
   return withAppBuildGradle(config, (modConfig) => {
     if (modConfig.modResults.language === 'groovy') {
       let content = modConfig.modResults.contents;
+      
+      // This part adds the codepush.gradle apply line and is correct.
       const codePushApplyLine = 'apply from: "../../node_modules/@code-push-next/react-native-code-push/android/codepush.gradle"';
       if (!content.includes(codePushApplyLine)) {
         content += `\n${codePushApplyLine}\n`;
       }
 
-      const androidBlockRegex = /(android\s*\{[\s\S]*?\n\})/m;
-      if (androidBlockRegex.test(content)) {
-        let androidBlockContent = content.match(androidBlockRegex)[0];
-        const buildTypesRegex = /buildTypes\s*\{([\s\S]*?)\n\s*\}/m;
+      const debugConfigFieldLine = 'buildConfigField "boolean", "DEBUG", "true"';
+      const releaseConfigFieldLine = 'buildConfigField "boolean", "DEBUG", "false"';
+      const indent = '            ';
+
+      /**
+       * A robust function to add a configuration field to a specific build type.
+       * It operates on the entire gradle content to ensure context is never lost.
+       * @param {string} gradleContent The entire content of the build.gradle file.
+       * @param {string} buildType The name of the build type (e.g., "debug").
+       * @param {string} field The configuration line to add.
+       * @returns {string} The modified gradle content.
+       */
+      const addFieldToBuildType = (gradleContent, buildType, field) => {
+        // Regex to find a specific buildType block that is inside the buildTypes block
+        const buildTypeRegex = new RegExp(`(buildTypes\\s*\\{[\\s\\S]*?${buildType}\\s*\\{)([\\s\\S]*?)(\\n\\s*\\})`, 'm');
         
-        const debugConfigFieldLine = 'buildConfigField "boolean", "DEBUG", "true"';
-        const releaseConfigFieldLine = 'buildConfigField "boolean", "DEBUG", "false"';
-        const indent = '            '; 
-
-        const modifyBuildType = (buildTypesStr, blockName, fieldToAdd) => {
-          const blockRegex = new RegExp(`${blockName}\\s*\\{([\\s\\S]*?)\\n\\s*\\}`, "m");
-          if (blockRegex.test(buildTypesStr)) {
-            return buildTypesStr.replace(blockRegex, (match, group1) => {
-              if (group1.includes(fieldToAdd.trim())) return match;
-              let lines = group1.trim().split('\n').filter(Boolean);
-              lines.push(fieldToAdd.trim());
-              const newInnerContent = lines.map(l => `${indent}${l}`).join('\n');
-              return `${blockName} {\n${newInnerContent}\n        }`;
-            });
-          } else {
-            return `${buildTypesStr.trim()}\n        ${blockName} {\n${indent}${fieldToAdd.trim()}\n        }`;
-          }
-        };
-
-        if (buildTypesRegex.test(androidBlockContent)) {
-          androidBlockContent = androidBlockContent.replace(buildTypesRegex, (match, group1) => {
-            let innerBuildTypes = group1;
-            innerBuildTypes = modifyBuildType(innerBuildTypes, "debug", debugConfigFieldLine);
-            innerBuildTypes = modifyBuildType(innerBuildTypes, "release", releaseConfigFieldLine);
-            return `buildTypes {\n${innerBuildTypes.trim()}\n    }`;
+        if (buildTypeRegex.test(gradleContent)) {
+          // The build type block (e.g., debug {}) already exists.
+          return gradleContent.replace(buildTypeRegex, (match, startBlock, innerContent, endBlock) => {
+            if (innerContent.includes(field.trim())) {
+              return match; // Field already exists, no changes needed.
+            }
+            // Add the field to the existing block.
+            const newInnerContent = innerContent.trim() ? `${innerContent.trim()}\n${indent}${field.trim()}` : `\n${indent}${field.trim()}`;
+            return `${startBlock}${newInnerContent}\n        ${endBlock}`;
           });
         } else {
-          androidBlockContent = androidBlockContent.replace(/\n\s*\}\s*$/, `\n    buildTypes {\n        debug {\n${indent}${debugConfigFieldLine.trim()}\n        }\n        release {\n${indent}${releaseConfigFieldLine.trim()}\n        }\n    }\n}`);
-        }
-        content = content.replace(androidBlockRegex, androidBlockContent);
-      } else {
-        WarningAggregator.addWarningAndroid('codepush-plugin', 'Could not find android { ... } block in app/build.gradle.');
-      }
-      
-      const reactBlockRegex = /react\s*\{([\s\S]*?)\n\s*\}/m;
-      const bundleAssetNameLine = 'bundleAssetName = "main.jsbundle"';
-      if (reactBlockRegex.test(content)) {
-        content = content.replace(reactBlockRegex, (match, inner) => {
-          if (inner.includes('bundleAssetName')) {
-            return match.replace(/bundleAssetName\s*=\s*["'].*["']/, bundleAssetNameLine);
+          // The build type block does not exist, so we need to add it.
+          const buildTypesRegex = /(buildTypes\s*\{)([\s\S]*?)(\n\s*\})/m;
+          if (buildTypesRegex.test(gradleContent)) {
+             // The buildTypes block exists, so add the new build type to it.
+             return gradleContent.replace(buildTypesRegex, (match, startBlock, innerContent, endBlock) => {
+               const newBlock = `\n        ${buildType} {\n${indent}${field.trim()}\n        }`;
+               return `${startBlock}${innerContent.trim()}${newBlock}${endBlock}`;
+             });
+          } else {
+            // The buildTypes block itself doesn't exist, a rare edge case.
+            // Expo projects should always have a buildTypes block.
+            WarningAggregator.addWarningAndroid('codepush-plugin', `Could not find buildTypes { ... } block in app/build.gradle to add the '${buildType}' configuration.`);
+            return gradleContent;
           }
-          return `react {\n${inner.trim()}\n    ${bundleAssetNameLine}\n}`;
-        });
-      } else {
-        WarningAggregator.addWarningAndroid('codepush-plugin', 'Could not find react { ... } block in app/build.gradle.');
-      }
+        }
+      };
 
+      // Apply the modifications for debug and release builds sequentially.
+      // Each function call operates on the full, updated content, preventing nesting errors.
+      content = addFieldToBuildType(content, 'debug', debugConfigFieldLine);
+      content = addFieldToBuildType(content, 'release', releaseConfigFieldLine);
+      
       modConfig.modResults.contents = content;
+    } else {
+      WarningAggregator.addWarningAndroid('codepush-plugin', 'Cannot apply build.gradle modifications because it is not a groovy file.');
     }
     return modConfig;
   });
