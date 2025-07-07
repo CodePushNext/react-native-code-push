@@ -34,8 +34,10 @@ Run the following command to generate updated bundle
 
 ### Android
 
+From in the android folder, run:
+
 ```
-npx expo export:embed \               
+npx expo export:embed \
   --entry-file index.js \
   --platform android \
   --dev false \
@@ -49,8 +51,10 @@ zip the build folder (include the build folder): `zip -r update.zip ./build`
 
 ### iOS
 
+From in the ios folder, run:
+
 ```
-npx expo export:embed \               
+npx expo export:embed \
   --entry-file index.js \
   --platform ios \
   --dev false \
