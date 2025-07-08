@@ -219,6 +219,30 @@ If you would like to display an update confirmation dialog (an "active install")
 
 *NOTE: If you are using [Redux](http://redux.js.org) and [Redux Saga](https://redux-saga.js.org/), you can alternatively use the [react-native-code-push-saga](http://github.com/lostintangent/react-native-code-push-saga) module, which allows you to customize when `sync` is called in a perhaps simpler/more idiomatic way.*
 
+3. For expo user with CNG(Continuous Native Generation)
+```json 
+// app.json
+    "expo": {
+        // ...
+        "plugins": [
+      [
+        "@code-push-next/react-native-code-push/expo",
+        {
+          "ios": {
+            "CodePushDeploymentKey": "deployment key",
+            "CodePushServerURL": "server url"
+          },
+          "android": {
+            "CodePushDeploymentKey": "deployment key",
+            "CodePushServerURL": "server url "
+          }
+        }
+      ],
+    ]
+    }
+```
+
+
 ### Store Guideline Compliance
 
 Android Google Play and iOS App Store have corresponding guidelines that have rules you should be aware of before integrating the CodePush solution within your application.
