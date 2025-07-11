@@ -141,6 +141,7 @@ public class CodePushNativeModule extends BaseJavaModule {
     // Use reflection to find and set the appropriate fields on ReactHostDelegate. See #556 for a proposal for a less brittle way
     // to approach this.
     private void setJSBundle(ReactHostDelegate reactHostDelegate, String latestJSBundleFile) throws IllegalAccessException {
+        
         try {
             JSBundleLoader latestJSBundleLoader;
             if (latestJSBundleFile.toLowerCase().startsWith("assets://")) {
@@ -152,7 +153,11 @@ public class CodePushNativeModule extends BaseJavaModule {
             Field bundleLoaderField = reactHostDelegate.getClass().getDeclaredField("jsBundleLoader");
             bundleLoaderField.setAccessible(true);
             bundleLoaderField.set(reactHostDelegate, latestJSBundleLoader);
-        } catch (Exception e) {
+
+        } catch (NoSuchFieldException nsfe) {
+            CodePushUtils.log("Field 'jsBundleLoader' NOT FOUND on " + (reactHostDelegate != null ? reactHostDelegate.getClass().getName() : "null") + ". This is an EXPECTED and IGNORED failure with ExpoReactHostDelegate. Will rely on reactHost.reload(). Original log: Unable to set JSBundle of ReactHostDelegate - CodePush may not support this version of React Native");
+            // DO NOT THROW for NoSuchFieldException.
+        }catch (Exception e) {
             CodePushUtils.log("Unable to set JSBundle of ReactHostDelegate - CodePush may not support this version of React Native");
             throw new IllegalAccessException("Could not setJSBundle");
         }
@@ -177,18 +182,38 @@ public class CodePushNativeModule extends BaseJavaModule {
                 mCodePush.clearDebugCacheIfNeeded(false);
             }
 
+
             try {
                 // #1) Get the ReactHost instance, which is what includes the
                 //     logic to reload the current React context.
                 final ReactHost reactHost = resolveReactHost();
                 if (reactHost == null) {
+                    loadBundleLegacy(); // Fallback if reactHost can't be resolved
                     return;
                 }
 
                 String latestJSBundleFile = mCodePush.getJSBundleFileInternal(mCodePush.getAssetsBundleFileName());
+                CodePushUtils.log("[MyDebug] Latest JS bundle for New Arch: " + latestJSBundleFile);
 
-                // #2) Update the locally stored JS bundle file path
-                setJSBundle(getReactHostDelegate((ReactHostImpl) reactHost), latestJSBundleFile);
+     
+                try {
+                    if (reactHost instanceof ReactHostImpl) { 
+                        ReactHostDelegate delegate = getReactHostDelegate((ReactHostImpl) reactHost); 
+                        if (delegate != null) {
+                            // #2) Update the locally stored JS bundle file path
+                            setJSBundle(delegate, latestJSBundleFile); 
+                        } else {
+                            CodePushUtils.log("Could not get ReactHostDelegate from ReactHostImpl.");
+                        }
+                    } else {
+                        CodePushUtils.log("ReactHost is not a direct ReactHostImpl instance (" + reactHost.getClass().getName() + "), skipping direct setJSBundle reflection attempt. This is expected with Expo.");
+                    }
+                } catch (ClassCastException cce) {
+                    CodePushUtils.log(new Exception("ClassCastException trying to get/use ReactHostDelegate. Skipping reflection call to setJSBundle. This is expected for Expo.", cce));
+                }catch (Exception e) {
+                    // Catch any unexpected errors from the attempt to call setJSBundle, e.g., if getReactHostDelegate itself fails
+                    CodePushUtils.log("Exception during the reflective setJSBundle block: " + e.getMessage());
+                }
 
                 // #3) Get the context creation method
                 try {
@@ -201,14 +226,12 @@ public class CodePushNativeModule extends BaseJavaModule {
                 }
 
             } catch (Exception e) {
-                // Our reflection logic failed somewhere
-                // so fall back to restarting the Activity (if it exists)
+                // reflection logic failed somewhere so fall back to restarting the Activity (if it exists)
                 CodePushUtils.log("Failed to load the bundle, falling back to restarting the Activity (if it exists). " + e.getMessage());
                 loadBundleLegacy();
             }
 
         } else {
-
             try {
                 DevSupportManager devSupportManager = null;
                 ReactInstanceManager reactInstanceManager = resolveInstanceManager();

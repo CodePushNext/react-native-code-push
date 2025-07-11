@@ -143,11 +143,11 @@ var TestUtil = (function () {
     /**
      * Check that boolean environment variable string is 'true.
      */
-    TestUtil.resolveBooleanVariables = function(variable) {
+    TestUtil.resolveBooleanVariables = function (variable) {
         if (variable) {
             return variable.toLowerCase() === 'true';
         }
-    
+
         return false;
     }
     //// Placeholders

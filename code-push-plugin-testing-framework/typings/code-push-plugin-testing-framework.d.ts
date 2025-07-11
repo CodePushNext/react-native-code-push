@@ -4,194 +4,194 @@ declare module 'code-push-plugin-testing-framework/script/platform' {
 	 * Defines a platform supported by CodePush.
 	 */
 	export interface IPlatform {
-	    /**
-	     * Gets the platform name. (e.g. "android" for the Android platform).
-	     */
-	    getName(): string;
-	    /**
-	     * The command line flag used to determine whether or not this platform should run.
-	     * Runs when the flag is present, doesn't run otherwise.
-	     */
-	    getCommandLineFlagName(): string;
-	    /**
-	     * Gets the server url used for testing.
-	     */
-	    getServerUrl(): string;
-	    /**
-	     * Gets an IEmulatorManager that is used to control the emulator during the tests.
-	     */
-	    getEmulatorManager(): IEmulatorManager;
-	    /**
-	     * Gets the default deployment key.
-	     */
-	    getDefaultDeploymentKey(): string;
+		/**
+		 * Gets the platform name. (e.g. "android" for the Android platform).
+		 */
+		getName(): string;
+		/**
+		 * The command line flag used to determine whether or not this platform should run.
+		 * Runs when the flag is present, doesn't run otherwise.
+		 */
+		getCommandLineFlagName(): string;
+		/**
+		 * Gets the server url used for testing.
+		 */
+		getServerUrl(): string;
+		/**
+		 * Gets an IEmulatorManager that is used to control the emulator during the tests.
+		 */
+		getEmulatorManager(): IEmulatorManager;
+		/**
+		 * Gets the default deployment key.
+		 */
+		getDefaultDeploymentKey(): string;
 	}
 	/**
 	 * Manages the interaction with the emulator.
 	 */
 	export interface IEmulatorManager {
-	    /**
-	     * Returns the target emulator, which is specified through the command line.
-	     */
-	    getTargetEmulator(): Q.Promise<string>;
-	    /**
-	     * Boots the target emulator.
-	     */
-	    bootEmulator(restartEmulators: boolean): Q.Promise<void>;
-	    /**
-	     * Launches an already installed application by app id.
-	     */
-	    launchInstalledApplication(appId: string): Q.Promise<void>;
-	    /**
-	     * Ends a running application given its app id.
-	     */
-	    endRunningApplication(appId: string): Q.Promise<void>;
-	    /**
-	     * Restarts an already installed application by app id.
-	     */
-	    restartApplication(appId: string): Q.Promise<void>;
-	    /**
-	     * Navigates away from the current app, waits for a delay (defaults to 1 second), then navigates to the specified app.
-	     */
-	    resumeApplication(appId: string, delayBeforeResumingMs?: number): Q.Promise<void>;
-	    /**
-	     * Prepares the emulator for a test.
-	     */
-	    prepareEmulatorForTest(appId: string): Q.Promise<void>;
-	    /**
-	     * Uninstalls the app from the emulator.
-	     */
-	    uninstallApplication(appId: string): Q.Promise<void>;
+		/**
+		 * Returns the target emulator, which is specified through the command line.
+		 */
+		getTargetEmulator(): Q.Promise<string>;
+		/**
+		 * Boots the target emulator.
+		 */
+		bootEmulator(restartEmulators: boolean): Q.Promise<void>;
+		/**
+		 * Launches an already installed application by app id.
+		 */
+		launchInstalledApplication(appId: string): Q.Promise<void>;
+		/**
+		 * Ends a running application given its app id.
+		 */
+		endRunningApplication(appId: string): Q.Promise<void>;
+		/**
+		 * Restarts an already installed application by app id.
+		 */
+		restartApplication(appId: string): Q.Promise<void>;
+		/**
+		 * Navigates away from the current app, waits for a delay (defaults to 1 second), then navigates to the specified app.
+		 */
+		resumeApplication(appId: string, delayBeforeResumingMs?: number): Q.Promise<void>;
+		/**
+		 * Prepares the emulator for a test.
+		 */
+		prepareEmulatorForTest(appId: string): Q.Promise<void>;
+		/**
+		 * Uninstalls the app from the emulator.
+		 */
+		uninstallApplication(appId: string): Q.Promise<void>;
 	}
 	/**
 	 * Android implementations of IPlatform.
 	 */
 	export class Android implements IPlatform {
-	    private emulatorManager;
-	    private serverUrl;
-	    constructor(emulatorManager: IEmulatorManager);
-	    /**
-	     * Gets the platform name. (e.g. "android" for the Android platform).
-	     */
-	    getName(): string;
-	    /**
-	     * The command line flag used to determine whether or not this platform should run.
-	     * Runs when the flag is present, doesn't run otherwise.
-	     */
-	    getCommandLineFlagName(): string;
-	    private static DEFAULT_ANDROID_SERVER_URL;
-	    /**
-	     * Gets the server url used for testing.
-	     */
-	    getServerUrl(): string;
-	    /**
-	     * Gets an IEmulatorManager that is used to control the emulator during the tests.
-	     */
-	    getEmulatorManager(): IEmulatorManager;
-	    /**
-	     * Gets the default deployment key.
-	     */
-	    getDefaultDeploymentKey(): string;
+		private emulatorManager;
+		private serverUrl;
+		constructor(emulatorManager: IEmulatorManager);
+		/**
+		 * Gets the platform name. (e.g. "android" for the Android platform).
+		 */
+		getName(): string;
+		/**
+		 * The command line flag used to determine whether or not this platform should run.
+		 * Runs when the flag is present, doesn't run otherwise.
+		 */
+		getCommandLineFlagName(): string;
+		private static DEFAULT_ANDROID_SERVER_URL;
+		/**
+		 * Gets the server url used for testing.
+		 */
+		getServerUrl(): string;
+		/**
+		 * Gets an IEmulatorManager that is used to control the emulator during the tests.
+		 */
+		getEmulatorManager(): IEmulatorManager;
+		/**
+		 * Gets the default deployment key.
+		 */
+		getDefaultDeploymentKey(): string;
 	}
 	/**
 	 * IOS implementation of IPlatform.
 	 */
 	export class IOS implements IPlatform {
-	    private emulatorManager;
-	    private serverUrl;
-	    constructor(emulatorManager: IEmulatorManager);
-	    /**
-	     * Gets the platform name. (e.g. "android" for the Android platform).
-	     */
-	    getName(): string;
-	    /**
-	     * The command line flag used to determine whether or not this platform should run.
-	     * Runs when the flag is present, doesn't run otherwise.
-	     */
-	    getCommandLineFlagName(): string;
-	    private static DEFAULT_IOS_SERVER_URL;
-	    /**
-	     * Gets the server url used for testing.
-	     */
-	    getServerUrl(): string;
-	    /**
-	     * Gets an IEmulatorManager that is used to control the emulator during the tests.
-	     */
-	    getEmulatorManager(): IEmulatorManager;
-	    /**
-	     * Gets the default deployment key.
-	     */
-	    getDefaultDeploymentKey(): string;
+		private emulatorManager;
+		private serverUrl;
+		constructor(emulatorManager: IEmulatorManager);
+		/**
+		 * Gets the platform name. (e.g. "android" for the Android platform).
+		 */
+		getName(): string;
+		/**
+		 * The command line flag used to determine whether or not this platform should run.
+		 * Runs when the flag is present, doesn't run otherwise.
+		 */
+		getCommandLineFlagName(): string;
+		private static DEFAULT_IOS_SERVER_URL;
+		/**
+		 * Gets the server url used for testing.
+		 */
+		getServerUrl(): string;
+		/**
+		 * Gets an IEmulatorManager that is used to control the emulator during the tests.
+		 */
+		getEmulatorManager(): IEmulatorManager;
+		/**
+		 * Gets the default deployment key.
+		 */
+		getDefaultDeploymentKey(): string;
 	}
 	export class AndroidEmulatorManager implements IEmulatorManager {
-	    private targetEmulator;
-	    /**
-	     * Returns the target emulator, which is specified through the command line.
-	     */
-	    getTargetEmulator(): Q.Promise<string>;
-	    /**
-	     * Boots the target emulator.
-	     */
-	    bootEmulator(restartEmulators: boolean): Q.Promise<void>;
-	    /**
-	     * Launches an already installed application by app id.
-	     */
-	    launchInstalledApplication(appId: string): Q.Promise<void>;
-	    /**
-	     * Ends a running application given its app id.
-	     */
-	    endRunningApplication(appId: string): Q.Promise<void>;
-	    /**
-	     * Restarts an already installed application by app id.
-	     */
-	    restartApplication(appId: string): Q.Promise<void>;
-	    /**
-	     * Navigates away from the current app, waits for a delay (defaults to 1 second), then navigates to the specified app.
-	     */
-	    resumeApplication(appId: string, delayBeforeResumingMs?: number): Q.Promise<void>;
-	    /**
-	     * Prepares the emulator for a test.
-	     */
-	    prepareEmulatorForTest(appId: string): Q.Promise<void>;
-	    /**
-	     * Uninstalls the app from the emulator.
-	     */
-	    uninstallApplication(appId: string): Q.Promise<void>;
+		private targetEmulator;
+		/**
+		 * Returns the target emulator, which is specified through the command line.
+		 */
+		getTargetEmulator(): Q.Promise<string>;
+		/**
+		 * Boots the target emulator.
+		 */
+		bootEmulator(restartEmulators: boolean): Q.Promise<void>;
+		/**
+		 * Launches an already installed application by app id.
+		 */
+		launchInstalledApplication(appId: string): Q.Promise<void>;
+		/**
+		 * Ends a running application given its app id.
+		 */
+		endRunningApplication(appId: string): Q.Promise<void>;
+		/**
+		 * Restarts an already installed application by app id.
+		 */
+		restartApplication(appId: string): Q.Promise<void>;
+		/**
+		 * Navigates away from the current app, waits for a delay (defaults to 1 second), then navigates to the specified app.
+		 */
+		resumeApplication(appId: string, delayBeforeResumingMs?: number): Q.Promise<void>;
+		/**
+		 * Prepares the emulator for a test.
+		 */
+		prepareEmulatorForTest(appId: string): Q.Promise<void>;
+		/**
+		 * Uninstalls the app from the emulator.
+		 */
+		uninstallApplication(appId: string): Q.Promise<void>;
 	}
 	export class IOSEmulatorManager implements IEmulatorManager {
-	    private targetEmulator;
-	    /**
-	     * Returns the target emulator, which is specified through the command line.
-	     */
-	    getTargetEmulator(): Q.Promise<string>;
-	    /**
-	     * Boots the target emulator.
-	     */
-	    bootEmulator(restartEmulators: boolean): Q.Promise<void>;
-	    /**
-	     * Launches an already installed application by app id.
-	     */
-	    launchInstalledApplication(appId: string): Q.Promise<void>;
-	    /**
-	     * Ends a running application given its app id.
-	     */
-	    endRunningApplication(appId: string): Q.Promise<void>;
-	    /**
-	     * Restarts an already installed application by app id.
-	     */
-	    restartApplication(appId: string): Q.Promise<void>;
-	    /**
-	     * Navigates away from the current app, waits for a delay (defaults to 1 second), then navigates to the specified app.
-	     */
-	    resumeApplication(appId: string, delayBeforeResumingMs?: number): Q.Promise<void>;
-	    /**
-	     * Prepares the emulator for a test.
-	     */
-	    prepareEmulatorForTest(appId: string): Q.Promise<void>;
-	    /**
-	     * Uninstalls the app from the emulator.
-	     */
-	    uninstallApplication(appId: string): Q.Promise<void>;
+		private targetEmulator;
+		/**
+		 * Returns the target emulator, which is specified through the command line.
+		 */
+		getTargetEmulator(): Q.Promise<string>;
+		/**
+		 * Boots the target emulator.
+		 */
+		bootEmulator(restartEmulators: boolean): Q.Promise<void>;
+		/**
+		 * Launches an already installed application by app id.
+		 */
+		launchInstalledApplication(appId: string): Q.Promise<void>;
+		/**
+		 * Ends a running application given its app id.
+		 */
+		endRunningApplication(appId: string): Q.Promise<void>;
+		/**
+		 * Restarts an already installed application by app id.
+		 */
+		restartApplication(appId: string): Q.Promise<void>;
+		/**
+		 * Navigates away from the current app, waits for a delay (defaults to 1 second), then navigates to the specified app.
+		 */
+		resumeApplication(appId: string, delayBeforeResumingMs?: number): Q.Promise<void>;
+		/**
+		 * Prepares the emulator for a test.
+		 */
+		prepareEmulatorForTest(appId: string): Q.Promise<void>;
+		/**
+		 * Uninstalls the app from the emulator.
+		 */
+		uninstallApplication(appId: string): Q.Promise<void>;
 	}
 
 }
@@ -202,51 +202,51 @@ declare module 'code-push-plugin-testing-framework/script/projectManager' {
 	 * In charge of project related operations.
 	 */
 	export class ProjectManager {
-	    static DEFAULT_APP_VERSION: string;
-	    private static NOT_IMPLEMENTED_ERROR_MSG;
-	    /**
-	     * Returns the name of the plugin being tested, for example Cordova or React-Native.
-	     *
-	     * Overwrite this in your implementation!
-	     */
-	    getPluginName(): string;
-	    /**
-	     * Creates a new test application at the specified path, and configures it
-	     * with the given server URL, android and ios deployment keys.
-	     *
-	     * Overwrite this in your implementation!
-	     */
-	    setupProject(projectDirectory: string, templatePath: string, appName: string, appNamespace: string, version?: string): Q.Promise<void>;
-	    /**
-	     * Sets up the scenario for a test in an already existing project.
-	     *
-	     * Overwrite this in your implementation!
-	     */
-	    setupScenario(projectDirectory: string, appId: string, templatePath: string, jsPath: string, targetPlatform: platform.IPlatform, version?: string): Q.Promise<void>;
-	    /**
-	     * Creates a CodePush update package zip for a project.
-	     *
-	     * Overwrite this in your implementation!
-	     */
-	    createUpdateArchive(projectDirectory: string, targetPlatform: platform.IPlatform, isDiff?: boolean): Q.Promise<string>;
-	    /**
-	     * Prepares a specific platform for tests.
-	     *
-	     * Overwrite this in your implementation!
-	     */
-	    preparePlatform(projectDirectory: string, targetPlatform: platform.IPlatform): Q.Promise<void>;
-	    /**
-	     * Cleans up a specific platform after tests.
-	     *
-	     * Overwrite this in your implementation!
-	     */
-	    cleanupAfterPlatform(projectDirectory: string, targetPlatform: platform.IPlatform): Q.Promise<void>;
-	    /**
-	     * Runs the test app on the given target / platform.
-	     *
-	     * Overwrite this in your implementation!
-	     */
-	    runApplication(projectDirectory: string, targetPlatform: platform.IPlatform): Q.Promise<void>;
+		static DEFAULT_APP_VERSION: string;
+		private static NOT_IMPLEMENTED_ERROR_MSG;
+		/**
+		 * Returns the name of the plugin being tested, for example Cordova or React-Native.
+		 *
+		 * Overwrite this in your implementation!
+		 */
+		getPluginName(): string;
+		/**
+		 * Creates a new test application at the specified path, and configures it
+		 * with the given server URL, android and ios deployment keys.
+		 *
+		 * Overwrite this in your implementation!
+		 */
+		setupProject(projectDirectory: string, templatePath: string, appName: string, appNamespace: string, version?: string): Q.Promise<void>;
+		/**
+		 * Sets up the scenario for a test in an already existing project.
+		 *
+		 * Overwrite this in your implementation!
+		 */
+		setupScenario(projectDirectory: string, appId: string, templatePath: string, jsPath: string, targetPlatform: platform.IPlatform, version?: string): Q.Promise<void>;
+		/**
+		 * Creates a CodePush update package zip for a project.
+		 *
+		 * Overwrite this in your implementation!
+		 */
+		createUpdateArchive(projectDirectory: string, targetPlatform: platform.IPlatform, isDiff?: boolean): Q.Promise<string>;
+		/**
+		 * Prepares a specific platform for tests.
+		 *
+		 * Overwrite this in your implementation!
+		 */
+		preparePlatform(projectDirectory: string, targetPlatform: platform.IPlatform): Q.Promise<void>;
+		/**
+		 * Cleans up a specific platform after tests.
+		 *
+		 * Overwrite this in your implementation!
+		 */
+		cleanupAfterPlatform(projectDirectory: string, targetPlatform: platform.IPlatform): Q.Promise<void>;
+		/**
+		 * Runs the test app on the given target / platform.
+		 *
+		 * Overwrite this in your implementation!
+		 */
+		runApplication(projectDirectory: string, targetPlatform: platform.IPlatform): Q.Promise<void>;
 	}
 	/**
 	 * Wrapper for ProjectManager.setupScenario in the TestRun directory.
@@ -413,6 +413,7 @@ declare module 'code-push-plugin-testing-framework/script/testConfig' {
 	export const updatesDirectory: string;
 	export const onlyRunCoreTests: boolean;
 	export const shouldSetup: boolean;
+	export const isExpoApp: boolean;
 	export const restartEmulators: boolean;
 	export const testOldArch: boolean;
 

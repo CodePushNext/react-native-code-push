@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "CodePushExpoDemoApp",
+    "slug": "CodePushExpoDemoApp",
+    "version": "1.2.1",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.CodePushNext.ExpoDemoApp"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.CodePushNext.ExpoDemoApp"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "@code-push-next/react-native-code-push/expo",
+        {
+          "ios": {
+            "CodePushDeploymentKey": "Tf2qo0NCNKloj8Ym2Z2Bk_VQ_zLDNzk2MGNjNDktNWFiZS00NTAwLWFlNDEtZjMzNzllNGU0MjE0",
+            "CodePushServerURL": "https://codepush.bitrise.io"
+          },
+          "android": {
+            "CodePushDeploymentKey": "rUV0_iNflPqa3aJhVpciLnwgAFOaMzFiZjhhNDMtMGEyNS00NTk5LTk2ODEtOWU1NTcwODUwZTgx",
+            "CodePushServerURL": "https://codepush.bitrise.io"
+          }
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.5"
+          }
+        }
+      ]
+    ]
+  }
+}
