@@ -219,7 +219,7 @@ If you would like to display an update confirmation dialog (an "active install")
 
 *NOTE: If you are using [Redux](http://redux.js.org) and [Redux Saga](https://redux-saga.js.org/), you can alternatively use the [react-native-code-push-saga](http://github.com/lostintangent/react-native-code-push-saga) module, which allows you to customize when `sync` is called in a perhaps simpler/more idiomatic way.*
 
-3. For expo user with CNG(Continuous Native Generation)
+### For expo user with CNG(Continuous Native Generation)
 ```json 
 // app.json
     "expo": {
@@ -241,6 +241,13 @@ If you would like to display an update confirmation dialog (an "active install")
     ]
     }
 ```
+
+Currently, code-push-cli doesn't support expo-cli build. To make it work, you need to make metro.config.js on root directory.  
+```
+npx expo customize metro.config.js
+```
+
+https://docs.expo.dev/guides/customizing-metro/#customizing
 
 
 ### Store Guideline Compliance
