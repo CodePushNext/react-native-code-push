@@ -535,6 +535,7 @@ const ScenarioSyncMandatoryDefault = "scenarioSyncMandatoryDefault.js";
 const ScenarioSyncMandatoryResume = "scenarioSyncMandatoryResume.js";
 const ScenarioSyncMandatoryRestart = "scenarioSyncMandatoryRestart.js";
 const ScenarioSyncMandatorySuspend = "scenarioSyncMandatorySuspend.js";
+const ScenarioRetryTransientFailure = "scenarioRetryTransientFailure.js";
 
 const UpdateDeviceReady = "updateDeviceReady.js";
 const UpdateNotifyApplicationReady = "updateNotifyApplicationReady.js";
@@ -1632,4 +1633,22 @@ PluginTestingFramework.initializeTests(new RNProjectManager(), supportedTargetPl
                             .done(() => { done(); }, (e) => { done(e); });
                     });
             });
+
+        TestBuilder.describe("#RetryHelper",
+            () => {
+                TestBuilder.it("retries network failures and logs retry attempts", true,
+                    (done: Mocha.Done) => {
+                        ServerUtil.updateResponse = { update_info: ServerUtil.createUpdateResponse(false, targetPlatform) };
+
+                        /* Use an unreachable host to trigger network timeouts that will be retried */
+                        ServerUtil.updateResponse.update_info.download_url = "http://unreachable-host-for-retry-test.invalid/update.zip";
+
+                        projectManager.runApplication(TestConfig.testRunDirectory, targetPlatform);
+
+                        ServerUtil.expectTestMessages([
+                            ServerUtil.TestMessage.CHECK_UPDATE_AVAILABLE,
+                            ServerUtil.TestMessage.DOWNLOAD_ERROR])
+                            .then(() => { done(); }, (e) => { done(e); });
+                    });
+            }, ScenarioRetryTransientFailure);
     });
