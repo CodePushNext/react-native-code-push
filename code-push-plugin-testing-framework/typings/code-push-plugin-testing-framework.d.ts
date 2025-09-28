@@ -274,6 +274,8 @@ declare module 'code-push-plugin-testing-framework/script/serverUtil' {
 	export var server: any;
 	/** Response the server gives the next update check request */
 	export var updateResponse: any;
+	/** Number of times to mock a download failure */
+	export var mockDownloadFailureCount: number;
 	/** Response the server gives the next test message request */
 	export var testMessageResponse: any;
 	/** Called after the next test message request */
