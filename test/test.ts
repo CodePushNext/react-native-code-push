@@ -86,7 +86,7 @@ class RNAndroid extends Platform.Android implements RNPlatform {
             // we use hard-coded deployment key and server url in app.json
             return Q.Promise<void>((resolve, reject) => {
                 TestUtil.replaceString(androidMainActivityPath, "\"main\"", `"${TestConfig.TestAppName}"`);
-                TestUtil.replaceString(AndroidManifest, "android:allowBackup=\"true\"", "android:allowBackup=\"true\"" + "\n\t" + "android:usesCleartextTraffic=\"true\"");
+                TestUtil.replaceString(AndroidManifest, "\\${usesCleartextTraffic}", "true");
                 resolve(null);
             });
         }
@@ -101,12 +101,6 @@ class RNAndroid extends Platform.Android implements RNPlatform {
             "apply plugin: \"com.facebook.react\"",
             "apply plugin: \"com.facebook.react\"\napply from: \"" + gradleContent + "\"");
 
-        // Disable new architecture
-        if (TestConfig.testOldArch) {
-            const gradleProperties = path.join(innerprojectDirectory, "android", "gradle.properties");
-            TestUtil.replaceString(gradleProperties, "newArchEnabled=true", "newArchEnabled=false");
-        }
-
         //// Set the app version to 1.0.0 instead of 1.0
         // Set the app version to 1.0.0 in android/app/build.gradle
         TestUtil.replaceString(buildGradle, "versionName \"1.0\"", "versionName \"1.0.0\"");
@@ -117,7 +111,7 @@ class RNAndroid extends Platform.Android implements RNPlatform {
         const string = path.join(innerprojectDirectory, "android", "app", "src", "main", "res", "values", "strings.xml");
         TestUtil.replaceString(string, TestUtil.SERVER_URL_PLACEHOLDER, this.getServerUrl());
         TestUtil.replaceString(string, TestUtil.ANDROID_KEY_PLACEHOLDER, this.getDefaultDeploymentKey());
-        TestUtil.replaceString(AndroidManifest, "android:allowBackup=\"false\"", "android:allowBackup=\"false\"" + "\n\t" + "android:usesCleartextTraffic=\"true\"");
+        TestUtil.replaceString(AndroidManifest, "\\${usesCleartextTraffic}", "true");
 
 
         return Q<void>(null);
@@ -200,7 +194,7 @@ class RNIOS extends Platform.IOS implements RNPlatform {
         } else {
             // Install the Podfile
             return TestUtil.copyFile(path.join(TestConfig.templatePath, "ios", "Podfile"), podfilePath, true)
-                .then(() => TestUtil.getProcessOutput(`RCT_NEW_ARCH_ENABLED=${TestConfig.testOldArch ? 0 : 1} pod install`, { cwd: iOSProject }))
+                .then(() => TestUtil.getProcessOutput(`pod install`, { cwd: iOSProject }))
                 // Put the IOS deployment key in the Info.plist
                 .then(TestUtil.replaceString.bind(undefined, infoPlistPath,
                     "</dict>\n</plist>",
@@ -342,7 +336,7 @@ class RNProjectManager extends ProjectManager {
                 .then(TestUtil.getProcessOutput.bind(undefined, `npx expo prebuild --clean`, { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
                 .then(() => { return null; });
         } else {
-            return TestUtil.getProcessOutput("npx @react-native-community/cli init " + appName + " --version 0.80.1 --install-pods", { cwd: projectDirectory, timeout: 30 * 60 * 1000 })
+            return TestUtil.getProcessOutput("npx @react-native-community/cli init " + appName + " --version 0.82.1 --install-pods", { cwd: projectDirectory, timeout: 30 * 60 * 1000 })
                 .then((e) => { console.log(`"npx @react-native-community/cli init ${appName}" success. cwd=${projectDirectory}`); return e; })
                 .then(this.copyTemplate.bind(this, templatePath, projectDirectory))
                 .then<void>(TestUtil.getProcessOutput.bind(undefined, TestConfig.thisPluginInstallString, { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))

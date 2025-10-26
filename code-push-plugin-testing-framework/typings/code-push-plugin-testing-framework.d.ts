@@ -415,8 +415,6 @@ declare module 'code-push-plugin-testing-framework/script/testConfig' {
 	export const shouldSetup: boolean;
 	export const isExpoApp: boolean;
 	export const restartEmulators: boolean;
-	export const testOldArch: boolean;
-
 }
 declare module 'code-push-plugin-testing-framework/script/testUtil' {
 	import Q = require("q");
