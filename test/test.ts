@@ -86,7 +86,7 @@ class RNAndroid extends Platform.Android implements RNPlatform {
             // we use hard-coded deployment key and server url in app.json
             return Q.Promise<void>((resolve, reject) => {
                 TestUtil.replaceString(androidMainActivityPath, "\"main\"", `"${TestConfig.TestAppName}"`);
-                TestUtil.replaceString(AndroidManifest, "android:allowBackup=\"true\"", "android:allowBackup=\"true\"" + "\n\t" + "android:usesCleartextTraffic=\"true\"");
+                TestUtil.replaceString(AndroidManifest, "\\${usesCleartextTraffic}", "true");
                 resolve(null);
             });
         }
@@ -117,7 +117,7 @@ class RNAndroid extends Platform.Android implements RNPlatform {
         const string = path.join(innerprojectDirectory, "android", "app", "src", "main", "res", "values", "strings.xml");
         TestUtil.replaceString(string, TestUtil.SERVER_URL_PLACEHOLDER, this.getServerUrl());
         TestUtil.replaceString(string, TestUtil.ANDROID_KEY_PLACEHOLDER, this.getDefaultDeploymentKey());
-        TestUtil.replaceString(AndroidManifest, "android:allowBackup=\"false\"", "android:allowBackup=\"false\"" + "\n\t" + "android:usesCleartextTraffic=\"true\"");
+        TestUtil.replaceString(AndroidManifest, "\\${usesCleartextTraffic}", "true");
 
 
         return Q<void>(null);
@@ -342,7 +342,7 @@ class RNProjectManager extends ProjectManager {
                 .then(TestUtil.getProcessOutput.bind(undefined, `npx expo prebuild --clean`, { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
                 .then(() => { return null; });
         } else {
-            return TestUtil.getProcessOutput("npx @react-native-community/cli init " + appName + " --version 0.80.1 --install-pods", { cwd: projectDirectory, timeout: 30 * 60 * 1000 })
+            return TestUtil.getProcessOutput("npx @react-native-community/cli init " + appName + " --version 0.81.5 --install-pods", { cwd: projectDirectory, timeout: 30 * 60 * 1000 })
                 .then((e) => { console.log(`"npx @react-native-community/cli init ${appName}" success. cwd=${projectDirectory}`); return e; })
                 .then(this.copyTemplate.bind(this, templatePath, projectDirectory))
                 .then<void>(TestUtil.getProcessOutput.bind(undefined, TestConfig.thisPluginInstallString, { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))

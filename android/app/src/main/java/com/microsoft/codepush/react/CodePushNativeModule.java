@@ -858,7 +858,7 @@ public class CodePushNativeModule extends BaseJavaModule {
     public ReactHostDelegate getReactHostDelegate(ReactHostImpl reactHostImpl) {
         try {
             Class<?> clazz = reactHostImpl.getClass();
-            Field field = clazz.getDeclaredField("mReactHostDelegate");
+            Field field = clazz.getDeclaredField("reactHostDelegate");
             field.setAccessible(true);
 
             // Get the value of the field for the provided instance
