@@ -535,6 +535,7 @@ const ScenarioSyncMandatoryDefault = "scenarioSyncMandatoryDefault.js";
 const ScenarioSyncMandatoryResume = "scenarioSyncMandatoryResume.js";
 const ScenarioSyncMandatoryRestart = "scenarioSyncMandatoryRestart.js";
 const ScenarioSyncMandatorySuspend = "scenarioSyncMandatorySuspend.js";
+const ScenarioRetryTransientFailure = "scenarioRetryTransientFailure.js";
 
 const UpdateDeviceReady = "updateDeviceReady.js";
 const UpdateNotifyApplicationReady = "updateNotifyApplicationReady.js";
@@ -1632,4 +1633,26 @@ PluginTestingFramework.initializeTests(new RNProjectManager(), supportedTargetPl
                             .done(() => { done(); }, (e) => { done(e); });
                     });
             });
+
+            TestBuilder.describe("#RetryHelper",
+                () => {
+                    TestBuilder.it("retries network failures and logs retry attempts", true,
+                        (done: Mocha.Done) => {
+                            ServerUtil.updateResponse = { update_info: ServerUtil.createUpdateResponse(false, targetPlatform) };
+                            ServerUtil.mockDownloadFailureCount = 2;
+    
+                            setupUpdateScenario(projectManager, targetPlatform, UpdateDeviceReady, "Update 1")
+                                .then<void>((updatePath: string) => {
+                                    ServerUtil.updatePackagePath = updatePath;
+                                    projectManager.runApplication(TestConfig.testRunDirectory, targetPlatform);
+                                    return ServerUtil.expectTestMessages([
+                                        ServerUtil.TestMessage.CHECK_UPDATE_AVAILABLE,
+                                        // As download failure exception within retrials is consumed in native side, 
+                                        // we don't have any way to catch it on app side
+                                        ServerUtil.TestMessage.DOWNLOAD_SUCCEEDED,
+                                    ]);
+                                })  
+                                .done(() => { done(); }, (e) => { done(e); });
+                        });
+                }, ScenarioRetryTransientFailure);
     });

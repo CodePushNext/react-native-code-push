@@ -28,6 +28,11 @@ function setupServer(targetPlatform) {
         console.log("Response: " + JSON.stringify(exports.updateResponse));
     });
     app.get("/v0.1/public/codepush/report_status/download", function (req, res) {
+        if (exports.mockDownloadFailureCount > 0) {
+            exports.mockDownloadFailureCount--;
+            res.status(500).send("Mock download failure");
+            return;
+        }
         console.log("Application downloading the package.");
         res.download(exports.updatePackagePath);
     });
@@ -54,10 +59,13 @@ exports.setupServer = setupServer;
 function cleanupServer() {
     if (exports.server) {
         exports.server.close();
+        exports.mockDownloadFailureCount = 0;
         exports.server = undefined;
     }
 }
 exports.cleanupServer = cleanupServer;
+
+exports.mockDownloadFailureCount = 0;
 //////////////////////////////////////////////////////////////////////////////////////////
 // Classes and methods used for sending mock responses to the app.
 /**

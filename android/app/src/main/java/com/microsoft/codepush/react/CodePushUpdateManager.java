@@ -146,16 +146,30 @@ public class CodePushUpdateManager {
     public void downloadPackage(JSONObject updatePackage, String expectedBundleFileName,
                                 DownloadProgressCallback progressCallback,
                                 String stringPublicKey) throws IOException {
-        String newUpdateHash = updatePackage.optString(CodePushConstants.PACKAGE_HASH_KEY, null);
-        String newUpdateFolderPath = getPackageFolderPath(newUpdateHash);
-        String newUpdateMetadataPath = CodePushUtils.appendPathComponent(newUpdateFolderPath, CodePushConstants.PACKAGE_FILE_NAME);
+        final String newUpdateHash = updatePackage.optString(CodePushConstants.PACKAGE_HASH_KEY, null);
+        final String newUpdateFolderPath = getPackageFolderPath(newUpdateHash);
+        final String newUpdateMetadataPath = CodePushUtils.appendPathComponent(newUpdateFolderPath, CodePushConstants.PACKAGE_FILE_NAME);
         if (FileUtils.fileAtPathExists(newUpdateFolderPath)) {
             // This removes any stale data in newPackageFolderPath that could have been left
             // uncleared due to a crash or error during the download or install process.
             FileUtils.deleteDirectoryAtPath(newUpdateFolderPath);
         }
 
-        String downloadUrlString = updatePackage.optString(CodePushConstants.DOWNLOAD_URL_KEY, null);
+        final String downloadUrlString = updatePackage.optString(CodePushConstants.DOWNLOAD_URL_KEY, null);
+        
+        RetryHelper.executeWithRetry(new RetryHelper.RetryableOperation() {
+            @Override
+            public void execute() throws IOException {
+                downloadPackageAttempt(updatePackage, expectedBundleFileName, progressCallback, stringPublicKey, 
+                                     newUpdateHash, newUpdateFolderPath, newUpdateMetadataPath, downloadUrlString);
+            }
+        });
+    }
+
+    private void downloadPackageAttempt(JSONObject updatePackage, String expectedBundleFileName,
+                                       DownloadProgressCallback progressCallback, String stringPublicKey,
+                                       String newUpdateHash, String newUpdateFolderPath, 
+                                       String newUpdateMetadataPath, String downloadUrlString) throws IOException {
         HttpURLConnection connection = null;
         BufferedInputStream bin = null;
         FileOutputStream fos = null;
@@ -177,7 +191,12 @@ public class CodePushUpdateManager {
                 }
             }
 
+            connection.setConnectTimeout(30000);
+            connection.setReadTimeout(60000);
             connection.setRequestProperty("Accept-Encoding", "identity");
+            
+            RetryHelper.checkHttpResponse(connection);
+            
             bin = new BufferedInputStream(connection.getInputStream());
 
             long totalBytes = connection.getContentLength();
@@ -345,35 +364,49 @@ public class CodePushUpdateManager {
     }
 
     public void downloadAndReplaceCurrentBundle(String remoteBundleUrl, String bundleFileName) throws IOException {
-        URL downloadUrl;
-        HttpURLConnection connection = null;
-        BufferedInputStream bin = null;
-        FileOutputStream fos = null;
-        BufferedOutputStream bout = null;
         try {
-            downloadUrl = new URL(remoteBundleUrl);
-            connection = (HttpURLConnection) (downloadUrl.openConnection());
-            bin = new BufferedInputStream(connection.getInputStream());
-            File downloadFile = new File(getCurrentPackageBundlePath(bundleFileName));
-            downloadFile.delete();
-            fos = new FileOutputStream(downloadFile);
-            bout = new BufferedOutputStream(fos, CodePushConstants.DOWNLOAD_BUFFER_SIZE);
-            byte[] data = new byte[CodePushConstants.DOWNLOAD_BUFFER_SIZE];
-            int numBytesRead = 0;
-            while ((numBytesRead = bin.read(data, 0, CodePushConstants.DOWNLOAD_BUFFER_SIZE)) >= 0) {
-                bout.write(data, 0, numBytesRead);
-            }
+            final URL downloadUrl = new URL(remoteBundleUrl);
+            final String finalBundleFileName = bundleFileName;
+            
+            RetryHelper.executeWithRetry(new RetryHelper.RetryableOperation() {
+                @Override
+                public void execute() throws IOException {
+                    HttpURLConnection connection = null;
+                    BufferedInputStream bin = null;
+                    FileOutputStream fos = null;
+                    BufferedOutputStream bout = null;
+                    
+                    try {
+                        connection = (HttpURLConnection) (downloadUrl.openConnection());
+                        connection.setConnectTimeout(30000);
+                        connection.setReadTimeout(60000);
+                        
+                        RetryHelper.checkHttpResponse(connection);
+                        
+                        bin = new BufferedInputStream(connection.getInputStream());
+                        File downloadFile = new File(getCurrentPackageBundlePath(finalBundleFileName));
+                        downloadFile.delete();
+                        fos = new FileOutputStream(downloadFile);
+                        bout = new BufferedOutputStream(fos, CodePushConstants.DOWNLOAD_BUFFER_SIZE);
+                        byte[] data = new byte[CodePushConstants.DOWNLOAD_BUFFER_SIZE];
+                        int numBytesRead = 0;
+                        while ((numBytesRead = bin.read(data, 0, CodePushConstants.DOWNLOAD_BUFFER_SIZE)) >= 0) {
+                            bout.write(data, 0, numBytesRead);
+                        }
+                    } finally {
+                        try {
+                            if (bout != null) bout.close();
+                            if (fos != null) fos.close();
+                            if (bin != null) bin.close();
+                            if (connection != null) connection.disconnect();
+                        } catch (IOException e) {
+                            throw new CodePushUnknownException("Error closing IO resources.", e);
+                        }
+                    }
+                }
+            });
         } catch (MalformedURLException e) {
             throw new CodePushMalformedDataException(remoteBundleUrl, e);
-        } finally {
-            try {
-                if (bout != null) bout.close();
-                if (fos != null) fos.close();
-                if (bin != null) bin.close();
-                if (connection != null) connection.disconnect();
-            } catch (IOException e) {
-                throw new CodePushUnknownException("Error closing IO resources.", e);
-            }
         }
     }
 
