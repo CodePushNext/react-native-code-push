@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">CodePushDemo</string>
+    <string name="CodePushDeploymentKey">CodePushDeploymentKey</string>
+</resources>
