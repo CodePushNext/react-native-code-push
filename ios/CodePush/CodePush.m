@@ -538,7 +538,8 @@ static NSString *const LatestRollbackCountKey = @"count";
         // file (since Chrome wouldn't support it). Otherwise, update
         // the current bundle URL to point at the latest update
         if ([CodePush isUsingTestConfiguration] || ![super.bridge.bundleURL.scheme hasPrefix:@"http"]) {
-            [super.bridge setValue:[CodePush bundleURL] forKey:@"bundleURL"];
+            RCTReloadCommandSetBundleURL([CodePush bundleURL]);
+            // [super.bridge setValue:[CodePush bundleURL] forKey:@"bundleURL"];
         }
 
         RCTTriggerReloadCommandListeners(@"react-native-code-push: Restart");
