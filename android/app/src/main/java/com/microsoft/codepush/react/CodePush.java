@@ -57,8 +57,6 @@ public class CodePush implements ReactPackage {
 
     private static String mPublicKey;
 
-    private static ReactInstanceHolder mReactInstanceHolder;
-
     private static ReactHostHolder mReactHostHolder;
 
     public CodePush(String deploymentKey, Context context) {
@@ -398,19 +396,8 @@ public class CodePush implements ReactPackage {
         mSettingsManager.removeFailedUpdates();
     }
 
-    public static void setReactInstanceHolder(ReactInstanceHolder reactInstanceHolder) {
-        mReactInstanceHolder = reactInstanceHolder;
-    }
-
     public static void setReactHost(ReactHostHolder reactHostHolder) {
         mReactHostHolder = reactHostHolder;
-    }
-
-    static ReactInstanceManager getReactInstanceManager() {
-        if (mReactInstanceHolder == null) {
-            return null;
-        }
-        return mReactInstanceHolder.getReactInstanceManager();
     }
 
     static ReactHost getReactHost() {
@@ -430,11 +417,6 @@ public class CodePush implements ReactPackage {
         nativeModules.add(codePushModule);
         nativeModules.add(dialogModule);
         return nativeModules;
-    }
-
-    // Deprecated in RN v0.47.
-    public List<Class<? extends JavaScriptModule>> createJSModules() {
-        return new ArrayList<>();
     }
 
     @Override
