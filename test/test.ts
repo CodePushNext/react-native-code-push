@@ -516,6 +516,7 @@ const ScenarioDisallowRestartImmediate = "scenarioDisallowRestartImmediate.js";
 const ScenarioDisallowRestartOnResume = "scenarioDisallowRestartOnResume.js";
 const ScenarioDisallowRestartOnSuspend = "scenarioDisallowRestartOnSuspend.js";
 const ScenarioDownloadUpdate = "scenarioDownloadUpdate.js";
+const ScenarioDownloadProgress = "scenarioDownloadProgress.js";
 const ScenarioInstall = "scenarioInstall.js";
 const ScenarioInstallOnResumeWithRevert = "scenarioInstallOnResumeWithRevert.js";
 const ScenarioInstallOnSuspendWithRevert = "scenarioInstallOnSuspendWithRevert.js";
@@ -727,6 +728,57 @@ PluginTestingFramework.initializeTests(new RNProjectManager(), supportedTargetPl
                             .then(() => { done(); }, (e) => { done(e); });
                     });
             }, ScenarioDownloadUpdate);
+
+        TestBuilder.describe("#remotePackage.download.progress",
+            () => {
+                TestBuilder.it("remotePackage.download.progress.received", false,
+                    (done: Mocha.Done) => {
+                        setupUpdateScenario(projectManager, targetPlatform, UpdateNotifyApplicationReady, "Progress Test Update")
+                            .then<void>((updatePath: string) => {
+                                ServerUtil.updateResponse = { update_info: ServerUtil.createUpdateResponse(false, targetPlatform) };
+                                ServerUtil.updatePackagePath = updatePath;
+
+                                projectManager.runApplication(TestConfig.testRunDirectory, targetPlatform);
+
+                                const deferred = Q.defer<void>();
+                                let messageIndex = 0;
+                                let lastRequestBody: any = null;
+                                const expectedMessages = [
+                                    ServerUtil.TestMessage.CHECK_UPDATE_AVAILABLE,
+                                    ServerUtil.TestMessage.DOWNLOAD_PROGRESS_COUNT,
+                                    ServerUtil.TestMessage.DOWNLOAD_SUCCEEDED
+                                ];
+
+                                ServerUtil.testMessageCallback = (requestBody: any) => {
+                                    try {
+                                        if (lastRequestBody !== null &&
+                                            lastRequestBody.message === requestBody.message &&
+                                            JSON.stringify(lastRequestBody.args) === JSON.stringify(requestBody.args)) {
+                                            return;
+                                        }
+                                        lastRequestBody = requestBody;
+
+                                        if (requestBody.message === expectedMessages[messageIndex]) {
+                                            // verify count on DOWNLOAD_PROGRESS_COUNT message
+                                            if (requestBody.message === ServerUtil.TestMessage.DOWNLOAD_PROGRESS_COUNT) {
+                                                const count = requestBody.args[0];
+                                                assert(count >= 2, `Expected at least 2 progress events but got ${count}`);
+                                            }
+                                            messageIndex++;
+                                            if (messageIndex === expectedMessages.length) {
+                                                deferred.resolve(undefined);
+                                            }
+                                        }
+                                    } catch (e) {
+                                        deferred.reject(e);
+                                    }
+                                };
+
+                                return deferred.promise;
+                            })
+                            .then(() => { done(); }, (e) => { done(e); });
+                    });
+            }, ScenarioDownloadProgress);
 
         TestBuilder.describe("#localPackage.install",
             () => {

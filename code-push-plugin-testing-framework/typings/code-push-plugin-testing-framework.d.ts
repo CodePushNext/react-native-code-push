@@ -348,6 +348,8 @@ declare module 'code-push-plugin-testing-framework/script/serverUtil' {
 	    static RESTART_FAILED: string;
 	    static PENDING_PACKAGE: string;
 	    static CURRENT_PACKAGE: string;
+	    static DOWNLOAD_PROGRESS: string;
+	    static DOWNLOAD_PROGRESS_COUNT: string;
 	    static SYNC_UP_TO_DATE: number;
 	    static SYNC_UPDATE_INSTALLED: number;
 	    static SYNC_UPDATE_IGNORED: number;

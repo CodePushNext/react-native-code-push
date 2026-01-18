@@ -49,6 +49,13 @@ class CODE_PUSH_TEST_APP_NAME extends Component {
     downloadError(error) {
         return this.setStateAndSendMessage("Download error:\n" + error, "DOWNLOAD_ERROR");
     }
+    downloadProgress(progress) {
+        return this.setStateAndSendMessage(
+            "Download progress: " + progress.receivedBytes + "/" + progress.totalBytes,
+            "DOWNLOAD_PROGRESS",
+            [progress.totalBytes, progress.receivedBytes]
+        );
+    }
 
     // localPackage.install
     installSuccess() {
