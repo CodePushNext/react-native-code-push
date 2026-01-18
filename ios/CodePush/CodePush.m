@@ -744,8 +744,8 @@ RCT_EXPORT_METHOD(downloadUpdate:(NSDictionary*)updatePackage
             if (expectedContentLength == receivedContentLength) {
                 _didUpdateProgress = NO;
                 self.paused = YES;
-                [self dispatchDownloadProgressEvent];
             }
+            [self dispatchDownloadProgressEvent];
         }
         // The download completed
         doneCallback:^{
