@@ -26,4 +26,3 @@ exports.onlyRunCoreTests = TestUtil_1.TestUtil.resolveBooleanVariables(process.e
 exports.shouldSetup = TestUtil_1.TestUtil.readMochaCommandLineFlag(SETUP_FLAG_NAME);
 exports.isExpoApp = TestUtil_1.TestUtil.readMochaCommandLineFlag(EXPO_FLAG_NAME);
 exports.restartEmulators = TestUtil_1.TestUtil.resolveBooleanVariables(process.env.CLEAN);
-exports.testOldArch = TestUtil_1.TestUtil.resolveBooleanVariables(process.env.TEST_OLD_ARCH);

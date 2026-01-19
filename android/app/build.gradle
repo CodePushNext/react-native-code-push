@@ -36,9 +36,13 @@ android {
     defaultConfig {
         consumerProguardFiles 'proguard-rules.pro'
     }
+
+    buildFeatures {
+        buildConfig true
+    }
 }
 
 dependencies {
-    implementation "com.facebook.react:react-native:+"
+    implementation 'com.facebook.react:react-android:0.82.1'
     implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
 }
