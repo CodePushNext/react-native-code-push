@@ -65,6 +65,15 @@ In order to integrate CodePush into your Android project, please perform the fol
 
     *Note: If you need to dynamically use a different deployment, you can also override your deployment key in JS code using [Code-Push options](./api-js.md#CodePushOptions)*
 
+4. ProGuard / R8 Configuration
+
+If your app enables **ProGuard** or **R8 minification**. Add the following rule to your `android/app/proguard-rules.pro`
+
+```
+-keepclassmembers class com.facebook.react.runtime.ReactHostImpl {
+    com.facebook.react.runtime.ReactHostDelegate reactHostDelegate;
+}
+```
 
 In order to effectively make use of the `Staging` and `Production` deployments that were created along with your CodePush app, refer to the [multi-deployment testing](../README.md#multi-deployment-testing) docs below before actually moving your app's usage of CodePush into production.
 
