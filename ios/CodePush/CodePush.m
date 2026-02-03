@@ -547,7 +547,8 @@ static NSString *const LatestRollbackCountKey = @"count";
         // with New Architecture where RCTInstance invalidate and RCTFabricSurface start
         // can run concurrently, causing a crash when MountingCoordinator's mutex is accessed
         // after being destroyed.
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        // 
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             RCTTriggerReloadCommandListeners(@"react-native-code-push: Restart");
         });
     });
