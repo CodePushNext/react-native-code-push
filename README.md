@@ -53,6 +53,7 @@ We try our best to maintain backwards compatibility of our plugin with previous 
 | v0.76, v0.77, 0.78, 0.79 | v10.0+ _(Available for Old/New Architecture)_                                                        |
 | v0.80                    | v10.1+ _(Available for Old/New Architecture)_                                                        |
 | v0.81                    | v10.3+ _(Available for Old/New Architecture)_                                                        |
+| v0.82+                   | v10.4+ _(Available for New Architecture)_                                                        |
 
 ### Supported Components
 
