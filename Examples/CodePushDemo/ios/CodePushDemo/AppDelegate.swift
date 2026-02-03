@@ -25,7 +25,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     window = UIWindow(frame: UIScreen.main.bounds)
 
     factory.startReactNative(
-      withModuleName: "TestCodePush",
+      withModuleName: "CodePushDemo",
       in: window,
       launchOptions: launchOptions
     )
@@ -43,7 +43,7 @@ class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
 #if DEBUG
     RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
 #else
-    CodePush.bundleURL();
+    CodePush.bundleURL()
 #endif
   }
 }

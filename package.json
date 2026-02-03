@@ -22,9 +22,6 @@
     "test:ios": "npm run build:tests && npm run test:setup:ios && npm run test:fast:ios",
     "test:expo:android": "npm run build:tests && npm run test:setup:expo:android && npm run test:fast:expo:android",
     "test:expo:ios": "npm run build:tests && npm run test:setup:expo:ios && npm run test:fast:expo:ios",
-    "test:oldArch": "export TEST_OLD_ARCH=true && npm run build:tests && npm run test:setup && npm run test:fast",
-    "test:oldArch:android": "export TEST_OLD_ARCH=true && npm run build:tests && npm run test:setup:android && npm run test:fast:android",
-    "test:oldArch:ios": "export TEST_OLD_ARCH=true && npm run build:tests && npm run test:setup:ios && npm run test:fast:ios",
     "test:setup": "mocha --recursive bin/test --android --ios --setup",
     "test:setup:android": "mocha --recursive bin/test --android --setup",
     "test:setup:ios": "mocha --recursive bin/test --ios --setup",
@@ -53,6 +50,7 @@
     "xcode": "3.0.1"
   },
   "devDependencies": {
+    "react-native": "0.82.1",
     "@types/assert": "^1.5.2",
     "@types/mkdirp": "^1.0.1",
     "@types/mocha": "^9.0.0",

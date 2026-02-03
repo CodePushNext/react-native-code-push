@@ -538,10 +538,19 @@ static NSString *const LatestRollbackCountKey = @"count";
         // file (since Chrome wouldn't support it). Otherwise, update
         // the current bundle URL to point at the latest update
         if ([CodePush isUsingTestConfiguration] || ![super.bridge.bundleURL.scheme hasPrefix:@"http"]) {
-            [super.bridge setValue:[CodePush bundleURL] forKey:@"bundleURL"];
+            RCTReloadCommandSetBundleURL([CodePush bundleURL]);
+            // [super.bridge setValue:[CodePush bundleURL] forKey:@"bundleURL"];
         }
 
-        RCTTriggerReloadCommandListeners(@"react-native-code-push: Restart");
+        // Add a small delay to ensure Fabric surface initialization is complete
+        // before triggering reload. This fixes a race condition in React Native 0.82+
+        // with New Architecture where RCTInstance invalidate and RCTFabricSurface start
+        // can run concurrently, causing a crash when MountingCoordinator's mutex is accessed
+        // after being destroyed.
+        // 
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            RCTTriggerReloadCommandListeners(@"react-native-code-push: Restart");
+        });
     });
 }
 
