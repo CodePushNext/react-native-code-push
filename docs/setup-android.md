@@ -1,7 +1,8 @@
 ## Android Setup
 
-* [Plugin Installation and Configuration for React Native 0.76 version and above](#plugin-installation-and-configuration-for-react-native-060-version-and-above-android)
-* [Code Signing setup](#code-signing-setup)
+- [Android Setup](#android-setup)
+  - [Plugin Installation and Configuration for React Native 0.76 version and above (Android)](#plugin-installation-and-configuration-for-react-native-076-version-and-above-android)
+  - [Expo Integration](#expo-integration)
 
 In order to integrate CodePush into your Android project, please perform the following steps:
 
@@ -18,7 +19,7 @@ In order to integrate CodePush into your Android project, please perform the fol
 
 2. Update the `MainApplication` file to use CodePush via the following changes:
 
-    For React Native 0.76 and above: update the `MainApplication.kt`
+    For React Native 0.76 to 0.81: update the `MainApplication.kt`
 
     **Important! : PackageList must be instantiated only one in application lifetime.** 
 
@@ -42,6 +43,31 @@ In order to integrate CodePush into your Android project, please perform the fol
                  return CodePush.getJSBundleFile() 
                }
         };
+    }
+
+    For React Native 0.82 and above: update the `MainApplication.kt` as follows:
+
+    ```kotlin
+    ...
+    // 1. Import the plugin class.
+    import com.microsoft.codepush.react.CodePush
+
+    class MainApplication : Application(), ReactApplication {
+
+        override val reactHost: ReactHost by lazy {
+            getDefaultReactHost(
+            context = applicationContext,
+            packageList =
+                PackageList(this).packages.apply {
+                // Packages that cannot be autolinked yet can be added manually here, for example:
+                // add(MyReactNativePackage())
+                },
+            // 2. RN 0.82+ uses ReactHost config instead of overriding getJSBundleFile().
+            // Set jsBundleFilePath to CodePush so CodePush resolves the JS bundle path
+            // at startup (OTA update if available, fallback to bundled JS otherwise).
+            jsBundleFilePath = CodePush.getJSBundleFile(),
+            )
+        }
     }
     ```
 
