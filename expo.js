@@ -198,13 +198,24 @@ const withAndroidMainApplication = (config) => {
     override fun getJSBundleFile(): String {
         return CodePush.getJSBundleFile()
     }`;
-    const hermesEnabledAnchor = /(override\s+val\s+isHermesEnabled:\s*Boolean\s*=\s*BuildConfig\.IS_HERMES_ENABLED)\s*\n/m;
 
     if (!content.includes("override fun getJSBundleFile(): String")) {
+      const hermesEnabledAnchor = /(override\s+val\s+isHermesEnabled:\s*Boolean\s*=\s*BuildConfig\.IS_HERMES_ENABLED)\s*\n/m;
       if (hermesEnabledAnchor.test(content)) {
+        // RN < 0.83: anchor after isHermesEnabled
         content = content.replace(hermesEnabledAnchor, `$1\n${getJSBundleFileMethodString}\n`);
+      } else if (content.includes('override fun onCreate()')) {
+        // RN 0.83+: isHermesEnabled was removed, insert before onCreate()
+        content = content.replace(
+          'override fun onCreate()',
+          `${getJSBundleFileMethodString}\n\n    override fun onCreate()`
+        );
       } else {
-        WarningAggregator.addWarningAndroid('codepush-plugin', 'Could not find `isHermesEnabled` property to anchor `getJSBundleFile()` insertion. Please review `MainApplication.kt`.');
+        // Fallback: insert inside the class body
+        content = content.replace(
+          /(class MainApplication[^{]*\{)/,
+          `$1\n${getJSBundleFileMethodString}`
+        );
       }
     }
     
