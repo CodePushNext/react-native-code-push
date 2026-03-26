@@ -197,14 +197,14 @@ const withAndroidMainApplication = (config) => {
       if (!content.includes("CodePush.getJSBundleFile()")) {
         const hermesEnabledAnchor = /(override\s+val\s+isHermesEnabled:\s*Boolean\s*=\s*BuildConfig\.IS_HERMES_ENABLED)\s*\n/m;
         if (hermesEnabledAnchor.test(content)) {
-          // RN < 0.83: uses ReactNativeHost with getJSBundleFile() override
+          // RN < 0.82: uses ReactNativeHost with getJSBundleFile() override
           const getJSBundleFileMethodString = `
       override fun getJSBundleFile(): String {
           return CodePush.getJSBundleFile()
       }`;
           content = content.replace(hermesEnabledAnchor, `$1\n${getJSBundleFileMethodString}\n`);
         } else {
-          // RN 0.83+: uses ReactHost via getDefaultReactHost() — pass jsBundleFilePath parameter
+          // RN 0.82+: uses ReactHost via getDefaultReactHost() — pass jsBundleFilePath parameter
           // Match the closing parenthesis of the getDefaultReactHost() call
           const reactHostCallRegex = /(getDefaultReactHost\([\s\S]*?packageList\s*=[\s\S]*?\})([\s\S]*?\))/m;
           if (reactHostCallRegex.test(content)) {
