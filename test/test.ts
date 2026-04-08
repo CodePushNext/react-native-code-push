@@ -536,11 +536,78 @@ const UpdateSync = "updateSync.js";
 const UpdateSync2x = "updateSync2x.js";
 const UpdateNotifyApplicationReadyConditional = "updateNARConditional.js";
 
+const ExpoAndroidMainApplicationPathSegments = [
+    "android",
+    "app",
+    "src",
+    "main",
+    "java",
+    "com",
+    "testcodepush",
+    "MainApplication.kt",
+];
+
+function getExpoAndroidMainApplicationPath(projectDirectory: string): string {
+    return path.join(projectDirectory, TestConfig.TestAppName, ...ExpoAndroidMainApplicationPathSegments);
+}
+
+function assertExpoAndroidCodePushBundleWiring(projectDirectory: string): void {
+    const mainApplicationPath = getExpoAndroidMainApplicationPath(projectDirectory);
+    assert.ok(fs.existsSync(mainApplicationPath), `Expected generated MainApplication.kt at ${mainApplicationPath}`);
+
+    const content = fs.readFileSync(mainApplicationPath, "utf8");
+
+    if (content.includes("ReactNativeHostWrapper(")) {
+        assert.ok(
+            /override fun getJSBundleFile\(\): String\s*\{\s*return CodePush\.getJSBundleFile\(\)\s*\}/m.test(content),
+            `Expected CodePush getJSBundleFile() override in ${mainApplicationPath}`
+        );
+    } else {
+        assert.ok(
+            /getDefaultReactHost\([\s\S]*jsBundleFilePath = CodePush\.getJSBundleFile\(\)[\s\S]*\)/m.test(content),
+            `Expected CodePush jsBundleFilePath wiring in ${mainApplicationPath}`
+        );
+    }
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Initialize the tests.
 
 PluginTestingFramework.initializeTests(new RNProjectManager(), supportedTargetPlatforms,
     (projectManager: ProjectManager, targetPlatform: Platform.IPlatform) => {
+        TestBuilder.describe("#expo.android.mainApplication",
+            () => {
+                TestBuilder.it("wires CodePush through jsBundleFilePath for the test app", false,
+                    (done: Mocha.Done) => {
+                        if (!TestConfig.isExpoApp || targetPlatform.getName() !== "android") {
+                            done();
+                            return;
+                        }
+
+                        try {
+                            assertExpoAndroidCodePushBundleWiring(TestConfig.testRunDirectory);
+                            done();
+                        } catch (error) {
+                            done(error);
+                        }
+                    });
+
+                TestBuilder.it("wires CodePush through jsBundleFilePath for the update app", false,
+                    (done: Mocha.Done) => {
+                        if (!TestConfig.isExpoApp || targetPlatform.getName() !== "android") {
+                            done();
+                            return;
+                        }
+
+                        try {
+                            assertExpoAndroidCodePushBundleWiring(TestConfig.updatesDirectory);
+                            done();
+                        } catch (error) {
+                            done(error);
+                        }
+                    });
+            });
+
         TestBuilder.describe("#window.codePush.checkForUpdate",
             () => {
                 TestBuilder.it("window.codePush.checkForUpdate.noUpdate", false,
