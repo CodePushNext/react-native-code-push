@@ -577,7 +577,7 @@ PluginTestingFramework.initializeTests(new RNProjectManager(), supportedTargetPl
     (projectManager: ProjectManager, targetPlatform: Platform.IPlatform) => {
         TestBuilder.describe("#expo.android.mainApplication",
             () => {
-                TestBuilder.it("wires CodePush through jsBundleFilePath for the test app", false,
+                TestBuilder.it("wires the CodePush bundle file for the test app", false,
                     (done: Mocha.Done) => {
                         if (!TestConfig.isExpoApp || targetPlatform.getName() !== "android") {
                             done();
@@ -592,7 +592,7 @@ PluginTestingFramework.initializeTests(new RNProjectManager(), supportedTargetPl
                         }
                     });
 
-                TestBuilder.it("wires CodePush through jsBundleFilePath for the update app", false,
+                TestBuilder.it("wires the CodePush bundle file for the update app", false,
                     (done: Mocha.Done) => {
                         if (!TestConfig.isExpoApp || targetPlatform.getName() !== "android") {
                             done();
