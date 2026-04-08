@@ -12,6 +12,44 @@ import Q = require("q");
 
 import del = require("del");
 
+function ensureAndroidCleartextTraffic(androidManifestPath: string): void {
+    const androidManifestContents = fs.readFileSync(androidManifestPath, "utf8");
+
+    if (androidManifestContents.includes("android:usesCleartextTraffic=\"true\"")) {
+        return;
+    }
+
+    let nextContents = androidManifestContents;
+
+    if (androidManifestContents.includes("android:usesCleartextTraffic=\"false\"")) {
+        nextContents = androidManifestContents.replace("android:usesCleartextTraffic=\"false\"", "android:usesCleartextTraffic=\"true\"");
+    } else if (/<application\b/.test(androidManifestContents)) {
+        nextContents = androidManifestContents.replace(/<application\b/, "<application android:usesCleartextTraffic=\"true\"");
+    } else {
+        throw new Error(`Could not find <application> tag in AndroidManifest.xml: ${androidManifestPath}`);
+    }
+
+    if (nextContents !== androidManifestContents) {
+        fs.writeFileSync(androidManifestPath, nextContents, "utf8");
+    }
+}
+
+function installExpoBundleTooling(projectPath: string): Q.Promise<void> {
+    const packageJsonPath = path.join(projectPath, "package.json");
+    const packageJsonContents = fs.readFileSync(packageJsonPath, "utf8");
+    const packageJson = JSON.parse(packageJsonContents);
+    const reactNativeVersion = packageJson.dependencies && packageJson.dependencies["react-native"];
+
+    if (!reactNativeVersion) {
+        throw new Error(`Could not determine react-native version from ${packageJsonPath}`);
+    }
+
+    return TestUtil.getProcessOutput(
+        `npm install --save-dev @react-native/metro-config@${reactNativeVersion}`,
+        { cwd: projectPath }
+    ).then(() => { return null; });
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Create the platforms to run the tests on.
 
@@ -86,7 +124,7 @@ class RNAndroid extends Platform.Android implements RNPlatform {
             // we use hard-coded deployment key and server url in app.json
             return Q.Promise<void>((resolve, reject) => {
                 TestUtil.replaceString(androidMainActivityPath, "\"main\"", `"${TestConfig.TestAppName}"`);
-                TestUtil.replaceString(AndroidManifest, "\\${usesCleartextTraffic}", "true");
+                ensureAndroidCleartextTraffic(AndroidManifest);
                 resolve(null);
             });
         }
@@ -329,11 +367,17 @@ class RNProjectManager extends ProjectManager {
         mkdirp.sync(projectDirectory);
 
         if (TestConfig.isExpoApp) {
-            return TestUtil.getProcessOutput(`npx create-expo-app@latest ${appName} --template blank`, { cwd: projectDirectory, timeout: 30 * 60 * 1000 })
+            return TestUtil.getProcessOutput(`npx create-expo-app@latest ${appName} --template blank@sdk-55`, { cwd: projectDirectory, timeout: 30 * 60 * 1000 })
                 .then((e) => { console.log(`"npx expo init ${appName}" success. cwd=${projectDirectory}`); return e; })
                 .then(this.copyTemplate.bind(this, templatePath, projectDirectory))
                 .then<void>(TestUtil.getProcessOutput.bind(undefined, TestConfig.thisPluginInstallString, { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
+                .then(installExpoBundleTooling.bind(undefined, path.join(projectDirectory, TestConfig.TestAppName)))
+                .then<void>(TestUtil.getProcessOutput.bind(undefined, "npx expo install expo-build-properties", { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
                 .then(TestUtil.getProcessOutput.bind(undefined, `npx expo prebuild --clean`, { cwd: path.join(projectDirectory, TestConfig.TestAppName) }))
+                .then(() => {
+                    ensureAndroidCleartextTraffic(path.join(projectDirectory, TestConfig.TestAppName, "android", "app", "src", "main", "AndroidManifest.xml"));
+                    return null;
+                })
                 .then(() => { return null; });
         } else {
             return TestUtil.getProcessOutput("npx @react-native-community/cli init " + appName + " --version 0.82.1 --install-pods", { cwd: projectDirectory, timeout: 30 * 60 * 1000 })
