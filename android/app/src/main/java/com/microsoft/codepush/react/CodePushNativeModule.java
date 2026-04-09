@@ -118,10 +118,28 @@ public class CodePushNativeModule extends BaseJavaModule {
         });
     }
 
+    private Field findBundleLoaderField(Class<?> delegateClass) {
+        Class<?> currentClass = delegateClass;
+        while (currentClass != null) {
+            try {
+                return currentClass.getDeclaredField("jsBundleLoader");
+            } catch (NoSuchFieldException ignored) {
+                // Continue searching the class hierarchy and alternate field names.
+            }
+
+            try {
+                return currentClass.getDeclaredField("_jsBundleLoader");
+            } catch (NoSuchFieldException ignored) {
+                currentClass = currentClass.getSuperclass();
+            }
+        }
+
+        return null;
+    }
+
     // Use reflection to find and set the appropriate fields on ReactHostDelegate. See #556 for a proposal for a less brittle way
     // to approach this.
     private void setJSBundle(ReactHostDelegate reactHostDelegate, String latestJSBundleFile) throws IllegalAccessException {
-        
         try {
             JSBundleLoader latestJSBundleLoader;
             if (latestJSBundleFile.toLowerCase().startsWith("assets://")) {
@@ -130,7 +148,10 @@ public class CodePushNativeModule extends BaseJavaModule {
                 latestJSBundleLoader = JSBundleLoader.createFileLoader(latestJSBundleFile);
             }
 
-            Field bundleLoaderField = reactHostDelegate.getClass().getDeclaredField("jsBundleLoader");
+            Field bundleLoaderField = findBundleLoaderField(reactHostDelegate.getClass());
+            if (bundleLoaderField == null) {
+                throw new NoSuchFieldException("jsBundleLoader");
+            }
             bundleLoaderField.setAccessible(true);
             bundleLoaderField.set(reactHostDelegate, latestJSBundleLoader);
 
