@@ -193,21 +193,36 @@ const withAndroidMainApplication = (config) => {
       }
     }
 
-    // --- 4. Add getJSBundleFile method ---
-    const getJSBundleFileMethodString = `
-    override fun getJSBundleFile(): String {
-        return CodePush.getJSBundleFile()
-    }`;
-    const hermesEnabledAnchor = /(override\s+val\s+isHermesEnabled:\s*Boolean\s*=\s*BuildConfig\.IS_HERMES_ENABLED)\s*\n/m;
-
-    if (!content.includes("override fun getJSBundleFile(): String")) {
-      if (hermesEnabledAnchor.test(content)) {
-        content = content.replace(hermesEnabledAnchor, `$1\n${getJSBundleFileMethodString}\n`);
-      } else {
-        WarningAggregator.addWarningAndroid('codepush-plugin', 'Could not find `isHermesEnabled` property to anchor `getJSBundleFile()` insertion. Please review `MainApplication.kt`.');
+      // --- 4. Wire up CodePush bundle file ---
+      if (!content.includes("CodePush.getJSBundleFile()")) {
+        const hermesEnabledAnchor = /(override\s+val\s+isHermesEnabled:\s*Boolean\s*=\s*BuildConfig\.IS_HERMES_ENABLED)\s*\n/m;
+        if (hermesEnabledAnchor.test(content)) {
+          // RN < 0.82: uses ReactNativeHost with getJSBundleFile() override
+          const getJSBundleFileMethodString = `
+      override fun getJSBundleFile(): String {
+          return CodePush.getJSBundleFile()
+      }`;
+          content = content.replace(hermesEnabledAnchor, `$1\n${getJSBundleFileMethodString}\n`);
+        } else {
+          // RN 0.82+: uses ReactHost via getDefaultReactHost() — pass jsBundleFilePath parameter
+          // Match the closing parenthesis of the getDefaultReactHost() call
+          const reactHostCallRegex = /(getDefaultReactHost\([\s\S]*?packageList\s*=[\s\S]*?\})([\s\S]*?\))/m;
+          if (reactHostCallRegex.test(content)) {
+            content = content.replace(reactHostCallRegex, (match, beforeClose, closing) => {
+              // Check if jsBundleFilePath is already set
+              if (match.includes('jsBundleFilePath')) return match;
+              // Insert the parameter before the closing parentheses
+              return `${beforeClose},\n      jsBundleFilePath = CodePush.getJSBundleFile()${closing}`;
+            });
+          } else {
+            WarningAggregator.addWarningAndroid(
+              'codepush-plugin',
+              'Could not find getDefaultReactHost() call in MainApplication. CodePush bundle file path not configured.'
+            );
+          }
+        }
       }
-    }
-    
+
     modConfig.modResults.contents = content;
     return modConfig;
   });
