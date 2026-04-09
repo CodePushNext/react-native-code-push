@@ -193,35 +193,43 @@ const withAndroidMainApplication = (config) => {
       }
     }
 
-      // --- 4. Wire up CodePush bundle file ---
-      if (!content.includes("CodePush.getJSBundleFile()")) {
-        const hermesEnabledAnchor = /(override\s+val\s+isHermesEnabled:\s*Boolean\s*=\s*BuildConfig\.IS_HERMES_ENABLED)\s*\n/m;
-        if (hermesEnabledAnchor.test(content)) {
-          // RN < 0.82: uses ReactNativeHost with getJSBundleFile() override
-          const getJSBundleFileMethodString = `
+    // --- 4. Wire up CodePush bundle file ---
+    if (!content.includes("CodePush.getJSBundleFile()")) {
+      const getJSBundleFileMethodString = `
       override fun getJSBundleFile(): String {
           return CodePush.getJSBundleFile()
       }`;
-          content = content.replace(hermesEnabledAnchor, `$1\n${getJSBundleFileMethodString}\n`);
+      const reactNativeHostAnchors = [
+        /(override\s+fun\s+getJSMainModuleName\(\):\s*String\s*=\s*[^\n]+)\s*\n/m,
+        /(override\s+fun\s+getUseDeveloperSupport\(\):\s*Boolean\s*=\s*BuildConfig\.DEBUG)\s*\n/m,
+        /(override\s+val\s+isHermesEnabled:\s*Boolean\s*=\s*BuildConfig\.IS_HERMES_ENABLED)\s*\n/m,
+        /(override\s+val\s+isNewArchEnabled:\s*Boolean\s*=\s*BuildConfig\.IS_NEW_ARCHITECTURE_ENABLED)\s*\n/m,
+      ];
+      const reactNativeHostAnchor = reactNativeHostAnchors.find(anchor => anchor.test(content));
+
+      if (reactNativeHostAnchor) {
+        // RN <= 0.81 and Expo SDK 54 still configure the bundle via ReactNativeHost.
+        // Expo wraps the host, but ReactNativeHostWrapper delegates getJSBundleFile() to the wrapped host.
+        content = content.replace(reactNativeHostAnchor, `$1\n${getJSBundleFileMethodString}\n`);
+      } else {
+        // RN 0.82+: uses ReactHost via getDefaultReactHost() — pass jsBundleFilePath parameter
+        // Match the closing parenthesis of the getDefaultReactHost() call
+        const reactHostCallRegex = /(getDefaultReactHost\([\s\S]*?packageList\s*=[\s\S]*?\})([\s\S]*?\))/m;
+        if (reactHostCallRegex.test(content)) {
+          content = content.replace(reactHostCallRegex, (match, beforeClose, closing) => {
+            // Check if jsBundleFilePath is already set
+            if (match.includes('jsBundleFilePath')) return match;
+            // Insert the parameter before the closing parentheses
+            return `${beforeClose},\n      jsBundleFilePath = CodePush.getJSBundleFile()${closing}`;
+          });
         } else {
-          // RN 0.82+: uses ReactHost via getDefaultReactHost() — pass jsBundleFilePath parameter
-          // Match the closing parenthesis of the getDefaultReactHost() call
-          const reactHostCallRegex = /(getDefaultReactHost\([\s\S]*?packageList\s*=[\s\S]*?\})([\s\S]*?\))/m;
-          if (reactHostCallRegex.test(content)) {
-            content = content.replace(reactHostCallRegex, (match, beforeClose, closing) => {
-              // Check if jsBundleFilePath is already set
-              if (match.includes('jsBundleFilePath')) return match;
-              // Insert the parameter before the closing parentheses
-              return `${beforeClose},\n      jsBundleFilePath = CodePush.getJSBundleFile()${closing}`;
-            });
-          } else {
-            WarningAggregator.addWarningAndroid(
-              'codepush-plugin',
-              'Could not find getDefaultReactHost() call in MainApplication. CodePush bundle file path not configured.'
-            );
-          }
+          WarningAggregator.addWarningAndroid(
+            'codepush-plugin',
+            'Could not detect a supported React host configuration in MainApplication. CodePush bundle file path not configured.'
+          );
         }
       }
+    }
 
     modConfig.modResults.contents = content;
     return modConfig;
