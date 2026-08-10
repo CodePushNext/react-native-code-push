@@ -40,6 +40,14 @@
     "type": "git",
     "url": "https://github.com/codemagic-ci-cd/react-native-code-push"
   },
+  "peerDependencies": {
+    "expo": "*"
+  },
+  "peerDependenciesMeta": {
+    "expo": {
+      "optional": true
+    }
+  },
   "dependencies": {
     "code-push": "4.2.3",
     "glob": "^7.1.7",
