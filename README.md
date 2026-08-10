@@ -1,3 +1,5 @@
+> **From the maintainers:** We build [Codemagic Patch](https://github.com/codemagic-ci-cd/codemagic-patch), a self-hosted OTA update service for React Native — server, client SDK, CLI, and dashboard — where our new development happens, and we recommend it for new projects. If you want to migrate from self-hosted CodePush, see the [migration guide](https://github.com/codemagic-ci-cd/codemagic-patch/blob/main/docs/migrate-from-codepush.md).
+
 # React Native Module for CodePush
 
 This plugin provides client-side integration for the [CodePush service](https://github.com/codemagic-ci-cd/react-native-code-push), allowing you to easily add a dynamic update experience to your React Native app(s).
